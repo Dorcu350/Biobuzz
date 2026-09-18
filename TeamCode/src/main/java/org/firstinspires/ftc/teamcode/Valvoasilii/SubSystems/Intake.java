@@ -9,9 +9,6 @@ import dev.frozenmilk.dairy.cachinghardware.CachingDcMotor;
 
 public class Intake {
     CachingDcMotor transfer,intake;
-    public static double[] reversePower = {-0.3, -0.2};
-    public static double[] shootPower = {1,1};
-    public static double[] intakePower = {1,1};
     public enum State {
         ForceReverse,
         ForceStop,
@@ -24,29 +21,29 @@ public class Intake {
 
     private void setPower(double powIntake,double powTransfer) { intake.setPower(powIntake); transfer.setPower(powTransfer); }
     private boolean checkIfAllTrue() {
-        for(boolean x : Globals.balls) if ( x == false ) return false;
-        return true;
+        return Globals.balls[0] && Globals.balls[1] && Globals.balls[2] && Globals.balls[3];
     }
 
     public void update() {
         switch (state) {
             case ForceReverse:
-                setPower(reversePower[0], reversePower[1]);
+                setPower(-0.5, -1);
                 break;
             case ForceStop:
+                setPower(0,0);
                 break;
             case Stop:
                 setPower(0,0);
                 break;
             case Shoot:
-                setPower(shootPower[0],shootPower[1]);
+                setPower(1,1);
                 break;
             case Intake:
                 if (checkIfAllTrue()) setPower(0,0);
                 else {
                     if (Globals.balls[3] == false) {
-                        setPower(intakePower[0],0);
-                    } else setPower(intakePower[0], intakePower[1]);
+                        setPower(1,0);
+                    } else setPower(1, 1);
                 }
                 break;
         }

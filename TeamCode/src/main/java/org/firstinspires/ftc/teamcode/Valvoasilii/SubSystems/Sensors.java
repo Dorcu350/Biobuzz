@@ -17,11 +17,6 @@ public class Sensors {
     public OctoQuad octoquad;
     Globals globals;
 
-    public boolean readFirst() { return (!sensor_first.getState()); }
-    public boolean readSecond() { return (!sensor_first.getState()); }
-    public boolean readThird() { return (!sensor_first.getState()); }
-    public boolean readFourth() { return (!sensor_first.getState()); }
-
     public void checkFullTransfer() {
         if ( !sensor_first.getState() ) Globals.balls[0] = true;
         if ( Globals.balls[0] && !sensor_second.getState() ) Globals.balls[1] = true;

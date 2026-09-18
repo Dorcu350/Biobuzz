@@ -16,6 +16,12 @@ public class Turret {
     public static double targetAngle,relativeAngle,targetPos;
     public static double shooterWorldX,shooterWorldY;
     public static double minAngle,maxAngle,minPos,maxPos;
+    public enum State {
+        FailSafe,
+        TurretNormal,
+        TurretSotm
+    }
+    public static State state;
     public void moveTo(double pos) { servoLeft.setPosition(pos); servoRight.setPosition(pos); servoBack.setPosition(pos);}
 
     public void update(double x, double y, double vx, double vy, double heading) {
@@ -25,15 +31,13 @@ public class Turret {
         double cleanVx = (abs(vx) > Globals.deadBandTurret) ? vx : 0.0;
         double cleanVy = (abs(vy) > Globals.deadBandTurret) ? vy : 0.0;
 
-        double xGoal,yGoal,temporaryDistance;
+        double xGoal,yGoal;
         if (Globals.alliance == Globals.Alliance.BLUE) {
-            temporaryDistance = Math.hypot(Globals.xCenterBlue - shooterWorldX,Globals.yCenterBlue - shooterWorldY);
-            xGoal = (temporaryDistance <= 0) ? Globals.xGoalBlueLeft : Globals.xGoalBlueRight;
-            yGoal = (temporaryDistance <= 0) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
+            xGoal = (x <= Globals.xCenterBlue) ? Globals.xGoalBlueLeft : Globals.xGoalBlueRight;
+            yGoal = (y <= Globals.yCenterBlue) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
         } else {
-            temporaryDistance = Math.hypot(Globals.xCenterRed - shooterWorldX,Globals.yCenterRed - shooterWorldY);
-            xGoal = (temporaryDistance <= 0) ? Globals.xGoalRedLeft : Globals.xGoalRedRight;
-            yGoal = (temporaryDistance <= 0) ? Globals.yGoalRedLeft : Globals.yGoalRedRight;
+            xGoal = (x <= Globals.xCenterBlue) ? Globals.xGoalRedLeft : Globals.xGoalRedRight;
+            yGoal = (y <= Globals.yCenterBlue) ? Globals.yGoalRedLeft : Globals.yGoalRedRight;
         }
 
         shooterWorldX = x + (Globals.shooterOffset * Math.cos(heading));
@@ -45,6 +49,24 @@ public class Turret {
         relativeAngle = Math.max(minAngle,Math.min(maxAngle,relativeAngle));
 
         targetPos = Range.scale(relativeAngle,minAngle,maxAngle,minPos,maxPos);
+
+        if (Globals.sotmActive) {
+        }
+
+        switch (state) {
+            case FailSafe:
+                moveTo(0.5);
+                Globals.sotmActive = false;
+                break;
+            case TurretNormal:
+                moveTo(targetPos);
+                Globals.sotmActive = false;
+                break;
+            case TurretSotm:
+                Globals.sotmActive = true;
+                moveTo(targetPos);
+                break;
+        }
     }
 
     public Turret(HardwareMap map) {

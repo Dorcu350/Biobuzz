@@ -17,10 +17,13 @@ import dev.frozenmilk.dairy.cachinghardware.CachingServo;
 public class Shooter {
     CachingDcMotorEx shooterDown,shooterUp;
     CachingServo stopper;
+    Turret turret;
+    Sensors sensors;
     public static double kP,kV,kS;
     public static double targetVel,error;
     public static double stopperOpen,stopperClose;
     public static double shooterWorldX,shooterWorldY;
+    public static double look_ahaed_time;
     public static boolean start = false;
     VoltageSensor voltageSensorShooter;
     public enum State {
@@ -40,20 +43,29 @@ public class Shooter {
         double cleanVx = (abs(vx) > Globals.deadBandShooter) ? vx : 0.0;
         double cleanVy = (abs(vy) > Globals.deadBandShooter) ? vy : 0.0;
 
-        double xGoal,yGoal,temporaryDistance;
+        double xGoal,yGoal;
         if (Globals.alliance == Globals.Alliance.BLUE) {
-            temporaryDistance = Math.hypot(Globals.xCenterBlue - shooterWorldX,Globals.yCenterBlue - shooterWorldY);
-            xGoal = (temporaryDistance <= 0) ? Globals.xGoalBlueLeft : Globals.xGoalBlueRight;
-            yGoal = (temporaryDistance <= 0) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
+            xGoal = (x <= Globals.xCenterBlue) ? Globals.xGoalBlueLeft : Globals.xGoalBlueRight;
+            yGoal = (y <= Globals.yCenterBlue) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
         } else {
-            temporaryDistance = Math.hypot(Globals.xCenterRed - shooterWorldX,Globals.yCenterRed - shooterWorldY);
-            xGoal = (temporaryDistance <= 0) ? Globals.xGoalRedLeft : Globals.xGoalRedRight;
-            yGoal = (temporaryDistance <= 0) ? Globals.yGoalRedLeft : Globals.yGoalRedRight;
+            xGoal = (x <= Globals.xCenterBlue) ? Globals.xGoalRedLeft : Globals.xGoalRedRight;
+            yGoal = (y <= Globals.yCenterBlue) ? Globals.yGoalRedLeft : Globals.yGoalRedRight;
         }
 
-        double vel = shooterUp.getVelocity(), distance = Math.hypot(xGoal - shooterWorldX,yGoal - shooterWorldY); Globals.currentVel = vel;Globals.distanceFromGoal = distance;
+        double vel = shooterUp.getVelocity(),xGhost = 0.0,yGhost = 0.0;
+        if (Globals.sotmActive) {
+                double lookAheadTime = look_ahaed_time;
+                double predX = shooterWorldX + (cleanVx * lookAheadTime);
+                double predY = shooterWorldY + (cleanVy * lookAheadTime);
+
+                xGhost = xGoal + predX;
+                yGhost = yGoal + predY;
+        }
+
+        double distance = Math.hypot(((Globals.sotmActive) ? xGhost : xGoal) - shooterWorldX,(Globals.sotmActive) ? yGhost : yGoal - shooterWorldY); Globals.currentVel = vel;Globals.distanceFromGoal = distance;
         targetVel = calculateShooterRPM(distance); Globals.targetVel = targetVel;
         error = targetVel - vel; Globals.error = error;
+
 
         if (start) {
             double voltageScaling = Globals.nominalVoltage / voltageSensorShooter.getVoltage();
@@ -79,26 +91,37 @@ public class Shooter {
                 break;
             case ShootingSOTM:
                 start = true;
-                Globals.sotmActive = true;
-                Globals.balls[0] = false; Globals.balls[1] = false;
-                Globals.balls[2] = false; Globals.balls[3] = false;
-                if (noError(error)) {
-                    stopper.setPosition(stopperOpen);
-                    Globals.startTransfer = true;
+                if (!isTurretInSotm()) {
+                    state = State.ShootingNormal;
                 }
+                if (noError(error)){
+                    stopper.setPosition(stopperOpen);
+                    resetTransfer();
+                }
+                if (sensors.stopperOpen()) Globals.startTransfer = true;
                 break;
             case ShootingNormal:
                 start = true;
                 Globals.sotmActive = false;
                 Globals.balls[0] = false; Globals.balls[1] = false;
                 Globals.balls[2] = false; Globals.balls[3] = false;
-                if (noError(error)) {
+                if (noError(error)){
                     stopper.setPosition(stopperOpen);
-                    Globals.startTransfer = true;
+                    resetTransfer();
                 }
+                if (sensors.stopperOpen()) Globals.startTransfer = true;
                 break;
         }
 
+    }
+
+    private void resetTransfer() {
+        Globals.balls[0] = false; Globals.balls[1] = false;
+        Globals.balls[2] = false; Globals.balls[3] = false;
+    }
+
+    private boolean isTurretInSotm() {
+        return Turret.state == Turret.State.TurretSotm;
     }
 
     public boolean noError(double error) {

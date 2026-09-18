@@ -12,6 +12,8 @@ public class Hood {
     CachingServo hood;
     public static double min = 0.0,max = 1.0;
     public static double hoodAngle;
+    Shooter shooter;
+    Turret turret;
     private double clamp(double value) { return Math.max(min, Math.min(max,value)); }
     private boolean isSotmActive() {
         return Globals.sotmActive;
@@ -29,5 +31,7 @@ public class Hood {
 
     public Hood(HardwareMap map) {
         hood = new CachingServo(map.get(Servo.class, " "));
+        turret = new Turret(map);
+        shooter = new Shooter(map);
     }
 }
