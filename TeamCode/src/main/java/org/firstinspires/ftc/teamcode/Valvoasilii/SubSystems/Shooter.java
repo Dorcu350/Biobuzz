@@ -36,42 +36,35 @@ public class Shooter {
 
     public void setPower(double power) { shooterDown.setPower(power); shooterUp.setPower(power); }
 
-    public void update(double x, double y, double vx,double vy, double heading) {
+    public void update(double x, double y, double heading) {
         shooterWorldX = x + (Globals.shooterOffset * Math.cos(heading));
         shooterWorldY = y + (Globals.shooterOffset * Math.sin(heading));
 
-        double cleanVx = (abs(vx) > Globals.deadBandShooter) ? vx : 0.0;
-        double cleanVy = (abs(vy) > Globals.deadBandShooter) ? vy : 0.0;
-
-        double xGoal,yGoal;
+        double xGoal,yGoal,trueReligionX,trueReligionY;
         if (Globals.alliance == Globals.Alliance.BLUE) {
             xGoal = (x <= Globals.xCenterBlue) ? Globals.xGoalBlueLeft : Globals.xGoalBlueRight;
             yGoal = (y <= Globals.yCenterBlue) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
         } else {
-            xGoal = (x <= Globals.xCenterBlue) ? Globals.xGoalRedLeft : Globals.xGoalRedRight;
-            yGoal = (y <= Globals.yCenterBlue) ? Globals.yGoalRedLeft : Globals.yGoalRedRight;
+            xGoal = (x <= Globals.xCenterRed) ? Globals.xGoalRedLeft : Globals.xGoalRedRight;
+            yGoal = (y <= Globals.yCenterRed) ? Globals.yGoalRedLeft : Globals.yGoalRedRight;
         }
+        trueReligionX = (Globals.sotmActive) ? Globals.virtualTargetX : xGoal;
+        trueReligionY = (Globals.sotmActive) ? Globals.virtualTargetY : yGoal;
 
-        double vel = shooterUp.getVelocity(),xGhost = 0.0,yGhost = 0.0;
-        if (Globals.sotmActive) {
-                double lookAheadTime = look_ahaed_time;
-                double predX = shooterWorldX + (cleanVx * lookAheadTime);
-                double predY = shooterWorldY + (cleanVy * lookAheadTime);
-
-                xGhost = xGoal + predX;
-                yGhost = yGoal + predY;
-        }
-
-        double distance = Math.hypot(((Globals.sotmActive) ? xGhost : xGoal) - shooterWorldX,(Globals.sotmActive) ? yGhost : yGoal - shooterWorldY); Globals.currentVel = vel;Globals.distanceFromGoal = distance;
-        targetVel = calculateShooterRPM(distance); Globals.targetVel = targetVel;
-        error = targetVel - vel; Globals.error = error;
-
+        double vel = shooterUp.getVelocity();
+        double distance = Math.hypot(trueReligionX - shooterWorldX,trueReligionY - shooterWorldY);
+        targetVel = calculateShooterRPM(distance);
+        error = targetVel - vel;
+        Globals.currentVel = vel;
+        Globals.distanceFromGoal = distance;
+        Globals.targetVel = targetVel;
+        Globals.error = error;
 
         if (start) {
             double voltageScaling = Globals.nominalVoltage / voltageSensorShooter.getVoltage();
 
             double feedForward = (kV * targetVel) + kS;
-            double proportional = kP * (abs(error));
+            double proportional = kP * (error);
 
             double pow = (feedForward + proportional) * voltageScaling;
             pow = Math.max(-1.0, Math.min(1.0, pow));
@@ -103,8 +96,6 @@ public class Shooter {
             case ShootingNormal:
                 start = true;
                 Globals.sotmActive = false;
-                Globals.balls[0] = false; Globals.balls[1] = false;
-                Globals.balls[2] = false; Globals.balls[3] = false;
                 if (noError(error)){
                     stopper.setPosition(stopperOpen);
                     resetTransfer();
@@ -125,7 +116,7 @@ public class Shooter {
     }
 
     public boolean noError(double error) {
-        return (error < 40);
+        return (abs(error) < 40);
     }
 
     public double calculateShooterRPM(double distance) {

@@ -4,6 +4,7 @@ import static java.lang.Math.abs;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -13,18 +14,37 @@ import dev.frozenmilk.dairy.cachinghardware.CachingServo;
 
 public class Turret {
     CachingServo servoLeft,servoRight,servoBack;
-    public static double targetAngle,relativeAngle,targetPos;
+    public static double targetAngle,relativeAngle,targetPos,commandedAngle = Double.NaN;
     public static double shooterWorldX,shooterWorldY;
     public static double minAngle,maxAngle,minPos,maxPos;
+    public static double timeOfFlight, omega = 0.0;
+    public static double
+            exitVelocity = 0.0,
+            launchAngleDeg = 0.0,
+            latency = 0.06,
+            servoFreeRate = 60.0 / 0.115, servoSpeedPct = 0.85, gearRatio = 3.0;
+    public static int sotmIterations = 3;
+    public static double lastHeading = Double.NaN;
     public enum State {
         FailSafe,
         TurretNormal,
         TurretSotm
     }
     public static State state;
+    private final ElapsedTime timer = new ElapsedTime();
     public void moveTo(double pos) { servoLeft.setPosition(pos); servoRight.setPosition(pos); servoBack.setPosition(pos);}
 
     public void update(double x, double y, double vx, double vy, double heading) {
+        double dt = timer.seconds();
+        timer.reset();
+        if (dt <= 1e-4 || dt > 0.25) dt = 0.02;
+
+        if (!Double.isNaN(lastHeading)) {
+            double deltaHeading = AngleUnit.normalizeRadians(heading - lastHeading);
+            omega += 0.35 * (deltaHeading / dt - omega);
+        }
+        lastHeading = heading;
+
         shooterWorldX = x + (Globals.shooterOffset * Math.cos(heading));
         shooterWorldY = y + (Globals.shooterOffset * Math.sin(heading));
 
@@ -36,22 +56,46 @@ public class Turret {
             xGoal = (x <= Globals.xCenterBlue) ? Globals.xGoalBlueLeft : Globals.xGoalBlueRight;
             yGoal = (y <= Globals.yCenterBlue) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
         } else {
-            xGoal = (x <= Globals.xCenterBlue) ? Globals.xGoalRedLeft : Globals.xGoalRedRight;
-            yGoal = (y <= Globals.yCenterBlue) ? Globals.yGoalRedLeft : Globals.yGoalRedRight;
+            xGoal = (x <= Globals.xCenterRed) ? Globals.xGoalRedLeft : Globals.xGoalRedRight;
+            yGoal = (y <= Globals.yCenterRed) ? Globals.yGoalRedLeft : Globals.yGoalRedRight;
         }
-
-        shooterWorldX = x + (Globals.shooterOffset * Math.cos(heading));
-        shooterWorldY = y + (Globals.shooterOffset * Math.sin(heading));
-
-        targetAngle = AngleUnit.normalizeRadians(Math.atan2(yGoal - shooterWorldY, xGoal - shooterWorldX) + Math.PI);
-
-        relativeAngle = Math.toDegrees(targetAngle - heading) + Globals.turretOffset;
-        relativeAngle = Math.max(minAngle,Math.min(maxAngle,relativeAngle));
-
-        targetPos = Range.scale(relativeAngle,minAngle,maxAngle,minPos,maxPos);
+        double gx = xGoal,gy = yGoal;
 
         if (Globals.sotmActive) {
+            double lat = latency;
+            double hPred = AngleUnit.normalizeRadians(heading + omega * lat);
+
+            shooterWorldX = x + (cleanVx * lat) + (Globals.shooterOffset * Math.cos(hPred));
+            shooterWorldY = y + (cleanVy * lat) + (Globals.shooterOffset * Math.sin(hPred));
+
+            double vsx = cleanVx - (omega * Globals.shooterOffset * Math.sin(hPred));
+            double vsy = cleanVy + (omega * Globals.shooterOffset * Math.cos(hPred));
+
+            double horizVel = exitVelocity * Math.cos(Math.toRadians(launchAngleDeg));
+            for (int i = 0; i < sotmIterations; i++) {
+                double dist = Math.hypot(gx - shooterWorldX, gy - shooterWorldY);
+                timeOfFlight = (horizVel > 1e-6) ? (dist / horizVel) : 0;
+                gx = xGoal - (vsx * timeOfFlight);
+                gy = yGoal - (vsy * timeOfFlight);
+            }
+        } else {
+            shooterWorldX = x + (Globals.shooterOffset * Math.cos(heading));
+            shooterWorldY = y + (Globals.shooterOffset * Math.sin(heading));
         }
+
+        Globals.virtualTargetX = gx;
+        Globals.virtualTargetY = gy;
+
+        targetAngle = AngleUnit.normalizeRadians(Math.atan2(gy - shooterWorldY, gx - shooterWorldX) + Math.PI);
+        relativeAngle = Math.toDegrees(AngleUnit.normalizeRadians(targetAngle - heading)) + Globals.turretOffset;
+
+        double clampedAngle = Range.clip(relativeAngle, minAngle, maxAngle);
+
+        if (Double.isNaN(commandedAngle)) commandedAngle = clampedAngle;
+        double maxStep = (servoFreeRate * servoSpeedPct / gearRatio) * dt;
+        commandedAngle += Range.clip(clampedAngle - commandedAngle, -maxStep, maxStep);
+
+        targetPos = Range.scale(commandedAngle, minAngle, maxAngle, minPos, maxPos);
 
         switch (state) {
             case FailSafe:
@@ -67,6 +111,9 @@ public class Turret {
                 moveTo(targetPos);
                 break;
         }
+
+        if (state == State.FailSafe) moveTo(0.5);
+        else moveTo(targetPos);
     }
 
     public Turret(HardwareMap map) {

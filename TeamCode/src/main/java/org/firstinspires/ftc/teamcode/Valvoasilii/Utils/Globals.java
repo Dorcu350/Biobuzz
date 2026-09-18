@@ -20,8 +20,15 @@ public class Globals {
     public static boolean startTransfer = false,sotmActive = false;
     public static double xCenterBlue,yCenterBlue;
     public static double xCenterRed,yCenterRed;
+    public static double virtualTargetX, virtualTargetY;
     public enum Alliance {
-        BLUE,RED
+        BLUE,
+        RED
     }
     public static Alliance alliance;
+    public enum Faze {
+        Auto,
+        TeleOp
+    }
+    public static Faze faze;
 }
