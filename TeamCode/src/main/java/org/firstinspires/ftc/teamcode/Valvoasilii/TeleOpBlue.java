@@ -62,7 +62,7 @@ public class TeleOpBlue extends LinearOpMode {
             follower.update();
             turret.update(0,0,0,0,0);
             hood.update();
-            shooter.update(0,0,0);
+            shooter.update(0,0,0,0,0);
             intake.update();
             follower.update();
 

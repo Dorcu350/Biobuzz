@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems;
 import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -15,48 +17,62 @@ import dev.frozenmilk.dairy.cachinghardware.CachingDcMotorEx;
 import dev.frozenmilk.dairy.cachinghardware.CachingServo;
 
 public class Shooter {
+    final TelemetryManager telemetryM;
     CachingDcMotorEx shooterDown,shooterUp;
     CachingServo stopper;
-    Turret turret;
     Sensors sensors;
-    public static double kP,kV,kS;
-    public static double targetVel,error;
-    public static double stopperOpen,stopperClose;
-    public static double shooterWorldX,shooterWorldY;
-    public static double look_ahaed_time;
+    public static double kP , kV , kS;
+    public static double targetVel , error;
+    public static double stopperOpen , stopperClose;
+    public static double shooterWorldX , shooterWorldY;
+    public static double look_ahead_time = 0.15;
     public static boolean start = false;
+    double xGoal, yGoal;
     VoltageSensor voltageSensorShooter;
     public enum State {
         Stopped,
+        Shoot,
         Idle,
-        ShootingNormal,
-        ShootingSOTM
     }
     public static State state;
 
     public void setPower(double power) { shooterDown.setPower(power); shooterUp.setPower(power); }
 
-    public void update(double x, double y, double heading) {
+
+    public void update(double x, double y, double vx, double vy, double heading) {
+        double vel = shooterUp.getVelocity();
+        error = targetVel - vel;
+
         shooterWorldX = x + (Globals.shooterOffset * Math.cos(heading));
         shooterWorldY = y + (Globals.shooterOffset * Math.sin(heading));
 
-        double xGoal,yGoal,trueReligionX,trueReligionY;
         if (Globals.alliance == Globals.Alliance.BLUE) {
-            xGoal = (x <= Globals.xCenterBlue) ? Globals.xGoalBlueLeft : Globals.xGoalBlueRight;
-            yGoal = (y <= Globals.yCenterBlue) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
-        } else {
-            xGoal = (x <= Globals.xCenterRed) ? Globals.xGoalRedLeft : Globals.xGoalRedRight;
-            yGoal = (y <= Globals.yCenterRed) ? Globals.yGoalRedLeft : Globals.yGoalRedRight;
+            xGoal = (x <= Globals.xMiddleField) ? Globals.xGoalBlueLeft : Globals.xGoalBlueRight;
+            yGoal = Globals.yGoalBlue;
         }
-        trueReligionX = (Globals.sotmActive) ? Globals.virtualTargetX : xGoal;
-        trueReligionY = (Globals.sotmActive) ? Globals.virtualTargetY : yGoal;
+        else {
+            xGoal = (x <= Globals.xMiddleField) ? Globals.xGoalRedLeft : Globals.xGoalRedRight;
+            yGoal = Globals.yGoalRed;
+        }
 
-        double vel = shooterUp.getVelocity();
-        double distance = Math.hypot(trueReligionX - shooterWorldX,trueReligionY - shooterWorldY);
-        targetVel = calculateShooterRPM(distance);
-        error = targetVel - vel;
+
+        if(Globals.sotmActive) {
+            double cleanVx = (Math.abs(vx) < Globals.deadBandShooter) ? 0 : vx;
+            double cleanVy = (Math.abs(vy) < Globals.deadBandTurret) ? 0 : vy;
+
+            double predX = shooterWorldX + (cleanVx * look_ahead_time);
+            double predY = shooterWorldY + (cleanVy * look_ahead_time);
+
+            Globals.virtualDistanceFromGoal = Math.hypot(predX - shooterWorldX,  predY - shooterWorldY);
+
+            targetVel = calculateShooterRPM(Globals.virtualDistanceFromGoal);
+        } else {
+            Globals.distanceFromGoal = Math.hypot(xGoal - shooterWorldX,  yGoal - shooterWorldY);
+
+            targetVel = calculateShooterRPM(Globals.distanceFromGoal);
+        }
+
         Globals.currentVel = vel;
-        Globals.distanceFromGoal = distance;
         Globals.targetVel = targetVel;
         Globals.error = error;
 
@@ -70,53 +86,46 @@ public class Shooter {
             pow = Math.max(-1.0, Math.min(1.0, pow));
 
             setPower(pow);
-        }
+
+        } else setPower(0);
+
 
         switch (state) {
             case Stopped:
+
                 start = false;
-                Globals.startTransfer = false;
-                break;
-            case Idle:
-                start = true;
-                Globals.startTransfer = false;
+                Globals.start_transfer = false;
                 stopper.setPosition(stopperClose);
+
                 break;
-            case ShootingSOTM:
+
+            case Shoot:
+
                 start = true;
-                if (!isTurretInSotm()) {
-                    state = State.ShootingNormal;
-                }
+                Globals.pre_spin = false;
+                Globals.start_transfer = true;
+
                 if (noError(error)){
                     stopper.setPosition(stopperOpen);
-                    resetTransfer();
+                    sensors.resetTransfer();
                 }
-                if (sensors.stopperOpen()) Globals.startTransfer = true;
+                if (sensors.stopperOpen()) Globals.start_transfer = true;
+
                 break;
-            case ShootingNormal:
+
+            case Idle:
+
                 start = true;
-                Globals.sotmActive = false;
-                if (noError(error)){
-                    stopper.setPosition(stopperOpen);
-                    resetTransfer();
-                }
-                if (sensors.stopperOpen()) Globals.startTransfer = true;
+                Globals.start_transfer = false;
+                Globals.pre_spin = true;
+                stopper.setPosition(stopperClose);
+
                 break;
         }
 
     }
-
-    private void resetTransfer() {
-        Globals.balls[0] = false; Globals.balls[1] = false;
-        Globals.balls[2] = false; Globals.balls[3] = false;
-    }
-
-    private boolean isTurretInSotm() {
-        return Turret.state == Turret.State.TurretSotm;
-    }
-
     public boolean noError(double error) {
-        return (abs(error) < 40);
+        return (abs(error) <= 80);
     }
 
     public double calculateShooterRPM(double distance) {
@@ -134,5 +143,12 @@ public class Shooter {
         shooterDown.setDirection(DcMotorSimple.Direction.REVERSE);
 
         voltageSensorShooter = map.voltageSensor.iterator().next();
+        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+
+        state = State.Idle;
+        sensors.resetTransfer();
     }
+
+    //            yGoal = (y <= Globals.yCenterBlue) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
+
 }

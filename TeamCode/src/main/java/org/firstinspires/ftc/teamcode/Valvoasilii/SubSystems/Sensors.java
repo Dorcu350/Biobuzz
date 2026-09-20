@@ -15,7 +15,8 @@ public class Sensors {
     AnalogInput stopper_a;
     public Limelight3A limelight;
     public OctoQuad octoquad;
-    Globals globals;
+
+    // TRANSFER -----------------------
 
     public void checkFullTransfer() {
         if ( !sensor_first.getState() ) Globals.balls[0] = true;
@@ -24,16 +25,32 @@ public class Sensors {
         if ( Globals.balls[2] && !sensor_fourth.getState() ) Globals.balls[3] = true;
     }
 
+    public void resetTransfer() {
+        Globals.balls[0] = false; Globals.balls[1] = false;
+        Globals.balls[2] = false; Globals.balls[3] = false;
+    }
+
+    //STOPPER -----------------------
+
     public double readStopperAnalog() { return stopper_a.getVoltage(); }
     public boolean stopperOpen() { return (readStopperAnalog() > 0.0); }
+
+    //OCTOQUAD -----------------------
     public void resetEncoders() {
         octoquad.resetAllPositions();
     }
+
     public Sensors(HardwareMap map) {
         sensor_first = map.get(DigitalChannel.class, "first");
         sensor_second = map.get(DigitalChannel.class, "second");
         sensor_third = map.get(DigitalChannel.class, "third");
         sensor_fourth = map.get(DigitalChannel.class, "fourth");
+
+        sensor_first.  setMode(DigitalChannel.Mode.INPUT);
+        sensor_second. setMode(DigitalChannel.Mode.INPUT);
+        sensor_third.  setMode(DigitalChannel.Mode.INPUT);
+        sensor_fourth.  setMode(DigitalChannel.Mode.INPUT);
+
 
         stopper_a = map.get(AnalogInput.class, "stopper");
         limelight = map.get(Limelight3A.class, "limelight");

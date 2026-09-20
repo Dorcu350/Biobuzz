@@ -10,17 +10,31 @@ import dev.frozenmilk.dairy.cachinghardware.CachingServo;
 
 public class Hood {
     CachingServo hood;
-    public static double min = 0.0,max = 1.0;
+    public static double min = 0.0 , max = 1.0;
     public static double hoodAngle;
     Shooter shooter;
-    Turret turret;
-    private double clamp(double value) { return Math.max(min, Math.min(max,value)); }
-    private boolean isSotmActive() {
-        return Globals.sotmActive;
+    public enum State {
+        ShootingNormal,
+        ShootingSOTM
     }
+    public static State state;
+    private double clamp(double value) { return Math.max(min, Math.min(max,value)); }
 
     public void update() {
-        hoodAngle = calculateHoodAngle(Globals.distanceFromGoal);
+
+        switch(state) {
+            case ShootingSOTM:
+
+                hoodAngle = calculateHoodAngle(Globals.virtualDistanceFromGoal);
+
+                break;
+
+            case ShootingNormal:
+
+                hoodAngle = calculateHoodAngle(Globals.distanceFromGoal);
+
+                break;
+        }
 
         hood.setPosition( clamp(hoodAngle) );
     }
@@ -30,8 +44,9 @@ public class Hood {
     }
 
     public Hood(HardwareMap map) {
-        hood = new CachingServo(map.get(Servo.class, " "));
-        turret = new Turret(map);
+        hood = new CachingServo(map.get(Servo.class, Globals.servoHood));
         shooter = new Shooter(map);
+
+        state = State.ShootingSOTM;
     }
 }
