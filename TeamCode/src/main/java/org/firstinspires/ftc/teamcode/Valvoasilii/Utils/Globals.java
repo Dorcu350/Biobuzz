@@ -5,7 +5,7 @@ public class Globals {
     //HARDWAREMAP -----------------
     public static boolean[] balls = {false,false,false,false};
     public static String[] motorsIntake = {"intake","transfer"};
-    public static String servoArms = "arms", servoHood = "hood";
+    public static String servoArms = "arms", servoHood = "hood", servoStopper = "stopper";
     public static String[] motorShooter = {"down","up"};
     public static String[] motorDriveTrain = {"frontLeft","frontRight","backLeft","backRight"};
     public static String[] servoTurret = {"servoLeft","servoRight","servoBack"};

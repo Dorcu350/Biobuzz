@@ -12,7 +12,6 @@ public class Hood {
     CachingServo hood;
     public static double min = 0.0 , max = 1.0;
     public static double hoodAngle;
-    Shooter shooter;
     public enum State {
         ShootingNormal,
         ShootingSOTM
@@ -45,7 +44,6 @@ public class Hood {
 
     public Hood(HardwareMap map) {
         hood = new CachingServo(map.get(Servo.class, Globals.servoHood));
-        shooter = new Shooter(map);
 
         state = State.ShootingSOTM;
     }

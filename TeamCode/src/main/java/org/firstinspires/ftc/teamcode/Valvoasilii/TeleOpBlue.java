@@ -60,12 +60,11 @@ public class TeleOpBlue extends LinearOpMode {
             for (LynxModule hub : allHubs) hub.clearBulkCache();
 
             follower.update();
-            turret.update(0,0,0,0,0);
+            turret.update(0,0,0,0,0,0);
             hood.update();
             shooter.update(0,0,0,0,0);
             intake.update();
             follower.update();
-
 
         }
 

@@ -16,6 +16,8 @@ public class Sensors {
     public Limelight3A limelight;
     public OctoQuad octoquad;
 
+
+
     // TRANSFER -----------------------
 
     public void checkFullTransfer() {
@@ -29,6 +31,9 @@ public class Sensors {
         Globals.balls[0] = false; Globals.balls[1] = false;
         Globals.balls[2] = false; Globals.balls[3] = false;
     }
+
+    public double getTOF(double distance) {return 0;}
+
 
     //STOPPER -----------------------
 

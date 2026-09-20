@@ -17,8 +17,9 @@ import dev.frozenmilk.dairy.cachinghardware.CachingServo;
 public class Turret {
     final TelemetryManager telemetryM;
     CachingServo servoLeft,servoRight,servoBack;
+    Sensors sensors;
     public static double target_angle, relative_angle, target_position;
-    public static double shooterWorldX , shooterWorldY , surface_speed;
+    public static double shooterWorldX , shooterWorldY , surface_speed, heading_comp;
     public static double MIN_ANGLE,  MAX_ANGLE, MIN_POS, MAX_POS, offset;
     public static double xGoal, yGoal;
     public enum State {
@@ -28,7 +29,7 @@ public class Turret {
     public static State state;
     public void moveTo(double pos) { servoLeft.setPosition(pos); servoRight.setPosition(pos); servoBack.setPosition(pos);}
 
-    public void update(double x, double y, double vx, double vy, double heading) {
+    public void update(double x, double y, double vx, double vy, double vh,double heading) {
 
         shooterWorldX = x + (Globals.shooterOffset * Math.cos(heading));
 
@@ -41,13 +42,15 @@ public class Turret {
 
             double cleanVy = (Math.abs(vy) < deadzone) ? 0 : vy;
 
+            double cleanVh = (Math.abs(vh) < deadzone) ? 0 : vh;
+
 
             double surfaceSpeedInches = (76.2 * Math.PI * (Globals.targetVel / 60.0)) / 25.4;
 
             double v_ball = surfaceSpeedInches * surface_speed;
 
 
-            double timeToGoal = (v_ball > 10) ? (Globals.virtualDistanceFromGoal / v_ball) : 0;
+            double timeToGoal = sensors.getTOF(Globals.virtualDistanceFromGoal);
 
             double ghostX, ghostY;
 
@@ -65,7 +68,7 @@ public class Turret {
 
             }
 
-            target_angle = Math.atan2(ghostY - shooterWorldY, ghostX - shooterWorldX) + Math.PI;
+            target_angle = Math.atan2(ghostY - shooterWorldY, ghostX - shooterWorldX) + Math.PI + cleanVh * heading_comp;
 
         } else {
             if (Globals.alliance == Globals.Alliance.BLUE) {
@@ -115,6 +118,8 @@ public class Turret {
         servoLeft = new CachingServo(map.get(Servo.class, Globals.servoTurret[0]));
         servoRight = new CachingServo(map.get(Servo.class, Globals.servoTurret[1]));
         servoBack = new CachingServo(map.get(Servo.class, Globals.servoTurret[2]));
+
+        sensors = new Sensors(map);
 
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 

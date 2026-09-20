@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.teamcode.Valvoasilii.Utils.Globals;
@@ -25,12 +26,10 @@ public class Shooter {
     public static double targetVel , error;
     public static double stopperOpen , stopperClose;
     public static double shooterWorldX , shooterWorldY;
-    public static double look_ahead_time = 0.15;
     public static boolean start = false;
     double xGoal, yGoal;
     VoltageSensor voltageSensorShooter;
     public enum State {
-        Stopped,
         Shoot,
         Idle,
     }
@@ -40,8 +39,6 @@ public class Shooter {
 
 
     public void update(double x, double y, double vx, double vy, double heading) {
-        double vel = shooterUp.getVelocity();
-        error = targetVel - vel;
 
         shooterWorldX = x + (Globals.shooterOffset * Math.cos(heading));
         shooterWorldY = y + (Globals.shooterOffset * Math.sin(heading));
@@ -60,11 +57,14 @@ public class Shooter {
             double cleanVx = (Math.abs(vx) < Globals.deadBandShooter) ? 0 : vx;
             double cleanVy = (Math.abs(vy) < Globals.deadBandTurret) ? 0 : vy;
 
-            double predX = shooterWorldX + (cleanVx * look_ahead_time);
-            double predY = shooterWorldY + (cleanVy * look_ahead_time);
+            double staticDistance = Math.hypot(xGoal - shooterWorldX, yGoal - shooterWorldY);
 
-            Globals.virtualDistanceFromGoal = Math.hypot(predX - shooterWorldX,  predY - shooterWorldY);
+            double timeToGoal = sensors.getTOF(staticDistance);
 
+            double predRobotX = shooterWorldX + (cleanVx * timeToGoal);
+            double predRobotY = shooterWorldY + (cleanVy * timeToGoal);
+
+            Globals.virtualDistanceFromGoal = Math.hypot(xGoal - predRobotX, yGoal - predRobotY);
             targetVel = calculateShooterRPM(Globals.virtualDistanceFromGoal);
         } else {
             Globals.distanceFromGoal = Math.hypot(xGoal - shooterWorldX,  yGoal - shooterWorldY);
@@ -72,32 +72,14 @@ public class Shooter {
             targetVel = calculateShooterRPM(Globals.distanceFromGoal);
         }
 
+        double vel = shooterUp.getVelocity();
+        error = targetVel - vel;
+
         Globals.currentVel = vel;
         Globals.targetVel = targetVel;
         Globals.error = error;
 
-        if (start) {
-            double voltageScaling = Globals.nominalVoltage / voltageSensorShooter.getVoltage();
-
-            double feedForward = (kV * targetVel) + kS;
-            double proportional = kP * (error);
-
-            double pow = (feedForward + proportional) * voltageScaling;
-            pow = Math.max(-1.0, Math.min(1.0, pow));
-
-            setPower(pow);
-
-        } else setPower(0);
-
-
         switch (state) {
-            case Stopped:
-
-                start = false;
-                Globals.start_transfer = false;
-                stopper.setPosition(stopperClose);
-
-                break;
 
             case Shoot:
 
@@ -123,6 +105,18 @@ public class Shooter {
                 break;
         }
 
+        if (start) {
+            double voltageScaling = Globals.nominalVoltage / voltageSensorShooter.getVoltage();
+
+            double feedForward = (kV * targetVel) + kS;
+            double proportional = kP * (error);
+
+            double pow = (feedForward + proportional) * voltageScaling;
+            pow = Math.max(-1.0, Math.min(1.0, pow));
+
+            setPower(pow);
+
+        } else setPower(0);
     }
     public boolean noError(double error) {
         return (abs(error) <= 80);
@@ -136,11 +130,15 @@ public class Shooter {
         shooterUp = new CachingDcMotorEx(map.get(DcMotorEx.class, Globals.motorShooter[0]));
         shooterDown = new CachingDcMotorEx(map.get(DcMotorEx.class, Globals.motorShooter[1]));
 
+        stopper = new CachingServo(map.get(Servo.class, Globals.servoStopper));
+
         shooterUp.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooterDown.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooterUp.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterDown.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterDown.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        sensors = new Sensors(map);
 
         voltageSensorShooter = map.voltageSensor.iterator().next();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
