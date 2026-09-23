@@ -29,45 +29,45 @@ public class Intake {
     public void update() {
         switch (state) {
             case ForceReverse:
+
                 moveArms(arm_open);
                 setPower(-0.5, -1);
 
-                if(Globals.start_transfer)
-                    state = State.Shoot;
                 break;
             case Stop:
+
                 moveArms(arm_open);
                 setPower(0,0);
 
-                if(Globals.start_transfer)
-                    state = State.Shoot;
                 break;
             case Shoot:
+
                 moveArms(arm_open);
                 setPower(1,1);
 
                 if(!Globals.start_transfer)
                     state = State.Intake;
+
                 break;
             case Intake:
+
                 moveArms(arm_open);
                 sensors.checkFullTransfer();
 
                 if(Globals.balls[3]) setPower(0,0);
                 else setPower(1,1);
 
-                if(Globals.start_transfer)
-                    state = State.Shoot;
-
                 break;
             case Flower:
+
                 moveArms(arm_flower);
                 setPower(1,1);
 
-                if(Globals.start_transfer)
-                    state = State.Shoot;
                 break;
         }
+
+        if(Globals.start_transfer)
+            state = State.Shoot;
     }
 
     public Intake(HardwareMap map) {

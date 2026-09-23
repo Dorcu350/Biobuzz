@@ -19,7 +19,7 @@ public class Turret {
     CachingServo servoLeft,servoRight,servoBack;
     Sensors sensors;
     public static double target_angle, relative_angle, target_position;
-    public static double shooterWorldX , shooterWorldY , surface_speed, heading_comp;
+    public static double shooterWorldX , shooterWorldY , heading_comp;
     public static double MIN_ANGLE,  MAX_ANGLE, MIN_POS, MAX_POS, offset;
     public static double xGoal, yGoal;
     public enum State {
@@ -35,8 +35,10 @@ public class Turret {
 
         shooterWorldY = y + (Globals.shooterOffset * Math.sin(heading));
 
+        // SOTM BIAS ----------------------------------------------------
+
         if(Globals.sotmActive) {
-            double deadzone = Globals.deadBandTurret; // Adjust this if 0.5 noise persists
+            double deadzone = Globals.deadBandTurret;
 
             double cleanVx = (Math.abs(vx) < deadzone) ? 0 : vx;
 
@@ -45,41 +47,41 @@ public class Turret {
             double cleanVh = (Math.abs(vh) < deadzone) ? 0 : vh;
 
 
-            double surfaceSpeedInches = (76.2 * Math.PI * (Globals.targetVel / 60.0)) / 25.4;
-
-            double v_ball = surfaceSpeedInches * surface_speed;
-
-
             double timeToGoal = sensors.getTOF(Globals.virtualDistanceFromGoal);
 
             double ghostX, ghostY;
 
-            if (Globals.alliance == Globals.Alliance.BLUE) {
-                xGoal = (x <= Globals.xMiddleField) ? Globals.xGoalBlueLeft : Globals.xGoalBlueRight;
-                ghostX = xGoal - (cleanVx * timeToGoal);
+            // GOAL SELECTION ----------------------------------------------------
 
-                ghostY = Globals.yGoalBlue - (cleanVy * timeToGoal);
+            if (Globals.alliance == Globals.Alliance.BLUE) {
+                yGoal = (y <= Globals.xMiddleField) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
+                ghostY = yGoal - (cleanVy * timeToGoal);
+
+                ghostX = Globals.xGoalBlue - (cleanVx * timeToGoal);
 
             } else {
-                xGoal = (x <= Globals.xMiddleField) ? Globals.xGoalRedLeft : Globals.xGoalRedRight;
-                ghostX = xGoal - (cleanVx * timeToGoal);
+                yGoal = (y <= Globals.xMiddleField) ? Globals.yGoalRedLeft : Globals.yGoalRedRight;
+                ghostY = yGoal - (cleanVy * timeToGoal);
 
-                ghostY = Globals.yGoalRed - (cleanVy * timeToGoal);
+                ghostX = Globals.xGoalRed- (cleanVx * timeToGoal);
 
             }
 
             target_angle = Math.atan2(ghostY - shooterWorldY, ghostX - shooterWorldX) + Math.PI + cleanVh * heading_comp;
 
         } else {
+
+            // GOAL SELECTION ----------------------------------------------------
+
             if (Globals.alliance == Globals.Alliance.BLUE) {
 
-                xGoal = (x <= Globals.xMiddleField) ? Globals.xGoalBlueLeft : Globals.xGoalBlueRight;
-                yGoal = Globals.yGoalBlue;
+                yGoal = (y <= Globals.xMiddleField) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
+                xGoal = Globals.xGoalBlue;
 
             } else {
 
-                xGoal = (x <= Globals.xMiddleField) ? Globals.xGoalRedLeft : Globals.xGoalRedRight;
-                yGoal = Globals.yGoalRed;
+                yGoal = (y <= Globals.xMiddleField) ? Globals.yGoalRedLeft : Globals.yGoalRedRight;
+                xGoal = Globals.xGoalRed;
 
             }
 
@@ -87,18 +89,19 @@ public class Turret {
 
         }
 
+        // CALCUL TARGET ----------------------------------------------------
 
         target_angle = AngleUnit.normalizeRadians(target_angle);
 
         relative_angle = Math.toDegrees(AngleUnit.normalizeRadians(target_angle - heading)) + offset;
 
 
-            relative_angle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, relative_angle));
+        relative_angle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, relative_angle));
 
 
-            target_position = Range.scale(relative_angle, MIN_ANGLE, MAX_ANGLE, MIN_POS, MAX_POS);
+        target_position = Range.scale(relative_angle, MIN_ANGLE, MAX_ANGLE, MIN_POS, MAX_POS);
 
-
+        // STATES ----------------------------------------------------
 
         switch (state) {
             case FailSafe:
@@ -124,5 +127,7 @@ public class Turret {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
         state = State.Normal;
+
+
     }
 }

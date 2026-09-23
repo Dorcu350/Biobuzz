@@ -43,15 +43,18 @@ public class Shooter {
         shooterWorldX = x + (Globals.shooterOffset * Math.cos(heading));
         shooterWorldY = y + (Globals.shooterOffset * Math.sin(heading));
 
+        // GOAL SELECTION ----------------------------------------------------
+
         if (Globals.alliance == Globals.Alliance.BLUE) {
-            xGoal = (x <= Globals.xMiddleField) ? Globals.xGoalBlueLeft : Globals.xGoalBlueRight;
-            yGoal = Globals.yGoalBlue;
+            yGoal = (y <= Globals.xMiddleField) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
+            xGoal = Globals.xGoalBlue;
         }
         else {
-            xGoal = (x <= Globals.xMiddleField) ? Globals.xGoalRedLeft : Globals.xGoalRedRight;
-            yGoal = Globals.yGoalRed;
+            yGoal = (y <= Globals.xMiddleField) ? Globals.yGoalRedLeft : Globals.yGoalRedRight;
+            xGoal = Globals.xGoalRed;
         }
 
+        // CALCULE SOTM ----------------------------------------------------
 
         if(Globals.sotmActive) {
             double cleanVx = (Math.abs(vx) < Globals.deadBandShooter) ? 0 : vx;
@@ -79,6 +82,8 @@ public class Shooter {
         Globals.targetVel = targetVel;
         Globals.error = error;
 
+        // STATES ----------------------------------------------------
+
         switch (state) {
 
             case Shoot:
@@ -104,6 +109,8 @@ public class Shooter {
 
                 break;
         }
+
+        // APLICARE PUTERE ----------------------------------------------------
 
         if (start) {
             double voltageScaling = Globals.nominalVoltage / voltageSensorShooter.getVoltage();
