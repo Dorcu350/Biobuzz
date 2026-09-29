@@ -3,10 +3,13 @@ package org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems;
 import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.teamcode.Valvoasilii.Utils.Globals;
@@ -15,50 +18,99 @@ import dev.frozenmilk.dairy.cachinghardware.CachingDcMotorEx;
 import dev.frozenmilk.dairy.cachinghardware.CachingServo;
 
 public class Shooter {
+    final TelemetryManager telemetryM;
     CachingDcMotorEx shooterDown,shooterUp;
     CachingServo stopper;
-    Turret turret;
     Sensors sensors;
-    public static double kP,kV,kS;
-    public static double targetVel,error;
-    public static double stopperOpen,stopperClose;
-    public static double shooterWorldX,shooterWorldY;
-    public static double look_ahaed_time;
+    public static double kP , kV , kS;
+    public static double targetVel , error;
+    public static double stopperOpen , stopperClose;
+    public static double shooterWorldX , shooterWorldY;
     public static boolean start = false;
+    double xGoal, yGoal;
     VoltageSensor voltageSensorShooter;
     public enum State {
-        Stopped,
+        Shoot,
         Idle,
-        ShootingNormal,
-        ShootingSOTM
     }
     public static State state;
 
     public void setPower(double power) { shooterDown.setPower(power); shooterUp.setPower(power); }
 
-    public void update(double x, double y, double heading) {
+
+    public void update(double x, double y, double vx, double vy, double heading) {
+
         shooterWorldX = x + (Globals.shooterOffset * Math.cos(heading));
         shooterWorldY = y + (Globals.shooterOffset * Math.sin(heading));
 
-        double xGoal,yGoal,trueReligionX,trueReligionY;
+        // GOAL SELECTION ----------------------------------------------------
+
         if (Globals.alliance == Globals.Alliance.BLUE) {
-            xGoal = (x <= Globals.xCenterBlue) ? Globals.xGoalBlueLeft : Globals.xGoalBlueRight;
-            yGoal = (y <= Globals.yCenterBlue) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
-        } else {
-            xGoal = (x <= Globals.xCenterRed) ? Globals.xGoalRedLeft : Globals.xGoalRedRight;
-            yGoal = (y <= Globals.yCenterRed) ? Globals.yGoalRedLeft : Globals.yGoalRedRight;
+            yGoal = (y <= Globals.xMiddleField) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
+            xGoal = Globals.xGoalBlue;
         }
-        trueReligionX = (Globals.sotmActive) ? Globals.virtualTargetX : xGoal;
-        trueReligionY = (Globals.sotmActive) ? Globals.virtualTargetY : yGoal;
+        else {
+            yGoal = (y <= Globals.xMiddleField) ? Globals.yGoalRedLeft : Globals.yGoalRedRight;
+            xGoal = Globals.xGoalRed;
+        }
+
+        // CALCULE SOTM ----------------------------------------------------
+
+        if(Globals.sotmActive) {
+            double cleanVx = (Math.abs(vx) < Globals.deadBandShooter) ? 0 : vx;
+            double cleanVy = (Math.abs(vy) < Globals.deadBandTurret) ? 0 : vy;
+
+            double staticDistance = Math.hypot(xGoal - shooterWorldX, yGoal - shooterWorldY);
+
+            double timeToGoal = sensors.getTOF(staticDistance);
+
+            double predRobotX = shooterWorldX + (cleanVx * timeToGoal);
+            double predRobotY = shooterWorldY + (cleanVy * timeToGoal);
+
+            Globals.virtualDistanceFromGoal = Math.hypot(xGoal - predRobotX, yGoal - predRobotY);
+            targetVel = calculateShooterRPM(Globals.virtualDistanceFromGoal);
+        } else {
+            Globals.distanceFromGoal = Math.hypot(xGoal - shooterWorldX,  yGoal - shooterWorldY);
+
+            targetVel = calculateShooterRPM(Globals.distanceFromGoal);
+        }
 
         double vel = shooterUp.getVelocity();
-        double distance = Math.hypot(trueReligionX - shooterWorldX,trueReligionY - shooterWorldY);
-        targetVel = calculateShooterRPM(distance);
         error = targetVel - vel;
+
         Globals.currentVel = vel;
-        Globals.distanceFromGoal = distance;
         Globals.targetVel = targetVel;
         Globals.error = error;
+
+        // STATES ----------------------------------------------------
+
+        switch (state) {
+
+            case Shoot:
+
+                start = true;
+                Globals.pre_spin = false;
+                Globals.start_transfer = true;
+
+                if (noError(error)){
+                    stopper.setPosition(stopperOpen);
+                    sensors.resetTransfer();
+                }
+                if (sensors.stopperOpen()) Globals.start_transfer = true;
+
+                break;
+
+            case Idle:
+
+                start = true;
+                Globals.start_transfer = false;
+                Globals.pre_spin = true;
+                stopper.setPosition(stopperClose);
+
+                break;
+        }
+
+        // APLICARE PUTERE ----------------------------------------------------
 
         if (start) {
             double voltageScaling = Globals.nominalVoltage / voltageSensorShooter.getVoltage();
@@ -70,53 +122,11 @@ public class Shooter {
             pow = Math.max(-1.0, Math.min(1.0, pow));
 
             setPower(pow);
-        }
 
-        switch (state) {
-            case Stopped:
-                start = false;
-                Globals.startTransfer = false;
-                break;
-            case Idle:
-                start = true;
-                Globals.startTransfer = false;
-                stopper.setPosition(stopperClose);
-                break;
-            case ShootingSOTM:
-                start = true;
-                if (!isTurretInSotm()) {
-                    state = State.ShootingNormal;
-                }
-                if (noError(error)){
-                    stopper.setPosition(stopperOpen);
-                    resetTransfer();
-                }
-                if (sensors.stopperOpen()) Globals.startTransfer = true;
-                break;
-            case ShootingNormal:
-                start = true;
-                Globals.sotmActive = false;
-                if (noError(error)){
-                    stopper.setPosition(stopperOpen);
-                    resetTransfer();
-                }
-                if (sensors.stopperOpen()) Globals.startTransfer = true;
-                break;
-        }
-
+        } else setPower(0);
     }
-
-    private void resetTransfer() {
-        Globals.balls[0] = false; Globals.balls[1] = false;
-        Globals.balls[2] = false; Globals.balls[3] = false;
-    }
-
-    private boolean isTurretInSotm() {
-        return Turret.state == Turret.State.TurretSotm;
-    }
-
     public boolean noError(double error) {
-        return (abs(error) < 40);
+        return (abs(error) <= 80);
     }
 
     public double calculateShooterRPM(double distance) {
@@ -127,12 +137,23 @@ public class Shooter {
         shooterUp = new CachingDcMotorEx(map.get(DcMotorEx.class, Globals.motorShooter[0]));
         shooterDown = new CachingDcMotorEx(map.get(DcMotorEx.class, Globals.motorShooter[1]));
 
+        stopper = new CachingServo(map.get(Servo.class, Globals.servoStopper));
+
         shooterUp.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooterDown.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooterUp.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterDown.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterDown.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        sensors = new Sensors(map);
+
         voltageSensorShooter = map.voltageSensor.iterator().next();
+        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+
+        state = State.Idle;
+        sensors.resetTransfer();
     }
+
+    //            yGoal = (y <= Globals.yCenterBlue) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
+
 }
