@@ -3,65 +3,69 @@ package org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems;
 import com.qualcomm.hardware.digitalchickenlabs.OctoQuad;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Valvoasilii.Utils.Globals;
 
-import javax.tools.DocumentationTool;
-
 public class Sensors {
-    DigitalChannel sensor_fourth,sensor_third,sensor_second,sensor_first;
+    public AnalogInput first_sensor, second_sensor, third_sensor, fourth_sensor;
     AnalogInput stopper_a;
     public Limelight3A limelight;
     public OctoQuad octoquad;
-
-
-
-    // TRANSFER -----------------------
+    public static double voltageFirstSensor = 0.0, voltageSecondSensor = 0.0, voltageThirdSensor = 0.0, voltageFourthSensor = 0.0;
+    private final OctoQuad.LocalizerDataBlock localizer = new OctoQuad.LocalizerDataBlock();
+    private double x, y, heading;
 
     public void checkFullTransfer() {
-        if ( !sensor_first.getState() ) Globals.balls[0] = true;
-        if ( Globals.balls[0] && !sensor_second.getState() ) Globals.balls[1] = true;
-        if ( Globals.balls[1] && !sensor_third.getState() ) Globals.balls[2] = true;
-        if ( Globals.balls[2] && !sensor_fourth.getState() ) Globals.balls[3] = true;
+        if (first_sensor.getVoltage() < voltageFirstSensor)
+            Globals.firstBall = true;
+
+        if (Globals.firstBall && second_sensor.getVoltage() < voltageSecondSensor)
+            Globals.secondBall = true;
+
+        if (Globals.secondBall && third_sensor.getVoltage() < voltageThirdSensor)
+            Globals.thirdBall = true;
+
+        if (Globals.thirdBall && fourth_sensor.getVoltage() < voltageFourthSensor)
+            Globals.fourthBall = true;
     }
 
     public void resetTransfer() {
-        Globals.balls[0] = false; Globals.balls[1] = false;
-        Globals.balls[2] = false; Globals.balls[3] = false;
+        Globals.firstBall = false; Globals.secondBall = false;
+        Globals.thirdBall = false; Globals.fourthBall = false;
     }
 
-    public double getTOF(double distance) {return 0;}
+    public double getTOF(double distance) {
+        return 0;
+    }
 
-
-    //STOPPER -----------------------
-
+    // STOPPER -----------------------
     public double readStopperAnalog() { return stopper_a.getVoltage(); }
-    public boolean stopperOpen() { return (readStopperAnalog() > 0.0); }
+    public boolean stopperOpen() { return readStopperAnalog() > 0.0; }
 
-    //OCTOQUAD -----------------------
-    public void resetEncoders() {
-        octoquad.resetAllPositions();
+    // OCTOQUAD -----------------------
+    public void updatePose() {
+        octoquad.readLocalizerData(localizer);
+        if (localizer.isDataValid()) {
+            x = DistanceUnit.INCH.fromMm(localizer.posX_mm);
+            y = DistanceUnit.INCH.fromMm(localizer.posY_mm);
+            heading = localizer.heading_rad;
+        }
     }
+    public double getX() { return x; }
+    public double getY() { return y; }
+    public double getHeading() { return heading; }
 
     public Sensors(HardwareMap map) {
-        sensor_first = map.get(DigitalChannel.class, "first");
-        sensor_second = map.get(DigitalChannel.class, "second");
-        sensor_third = map.get(DigitalChannel.class, "third");
-        sensor_fourth = map.get(DigitalChannel.class, "fourth");
-
-        sensor_first.  setMode(DigitalChannel.Mode.INPUT);
-        sensor_second. setMode(DigitalChannel.Mode.INPUT);
-        sensor_third.  setMode(DigitalChannel.Mode.INPUT);
-        sensor_fourth.  setMode(DigitalChannel.Mode.INPUT);
-
+        first_sensor = map.get(AnalogInput.class, " ");
+        second_sensor = map.get(AnalogInput.class, " ");
+        third_sensor = map.get(AnalogInput.class, " ");
+        fourth_sensor = map.get(AnalogInput.class, " ");
 
         stopper_a = map.get(AnalogInput.class, "stopper");
         limelight = map.get(Limelight3A.class, "limelight");
 
         octoquad = map.get(OctoQuad.class, "octoquad");
-        resetEncoders();
     }
-
 }

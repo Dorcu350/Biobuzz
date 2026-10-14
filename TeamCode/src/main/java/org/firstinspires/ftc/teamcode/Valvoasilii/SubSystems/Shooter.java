@@ -18,7 +18,7 @@ import dev.frozenmilk.dairy.cachinghardware.CachingDcMotorEx;
 import dev.frozenmilk.dairy.cachinghardware.CachingServo;
 
 public class Shooter {
-    final TelemetryManager telemetryM;
+//    final TelemetryManager telemetryM;
     CachingDcMotorEx shooterDown,shooterUp;
     CachingServo stopper;
     Sensors sensors;
@@ -134,26 +134,21 @@ public class Shooter {
     }
 
     public Shooter(HardwareMap map) {
-        shooterUp = new CachingDcMotorEx(map.get(DcMotorEx.class, Globals.motorShooter[0]));
+        shooterUp =   new CachingDcMotorEx(map.get(DcMotorEx.class, Globals.motorShooter[0]));
         shooterDown = new CachingDcMotorEx(map.get(DcMotorEx.class, Globals.motorShooter[1]));
+        stopper =     new CachingServo(map.get(Servo.class, Globals.servoStopper));
+        sensors =     new Sensors(map);
 
-        stopper = new CachingServo(map.get(Servo.class, Globals.servoStopper));
-
-        shooterUp.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooterDown.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooterUp.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        shooterDown.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        shooterDown.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        sensors = new Sensors(map);
+        shooterUp      .setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooterDown    .setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooterUp      .setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooterDown    .setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooterDown    .setDirection(DcMotorSimple.Direction.REVERSE);
 
         voltageSensorShooter = map.voltageSensor.iterator().next();
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+//        telemetryM           = PanelsTelemetry.INSTANCE.getTelemetry();
 
         state = State.Idle;
         sensors.resetTransfer();
     }
-
-    //            yGoal = (y <= Globals.yCenterBlue) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
-
 }

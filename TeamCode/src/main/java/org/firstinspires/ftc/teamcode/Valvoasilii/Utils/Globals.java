@@ -3,8 +3,8 @@ package org.firstinspires.ftc.teamcode.Valvoasilii.Utils;
 public class Globals {
 
     //HARDWAREMAP -----------------
-    public static boolean[] balls = {false,false,false,false};
-    public static String[] motorsIntake = {"intake","transfer"};
+    public static boolean firstBall,secondBall,thirdBall,fourthBall;
+    public static String motor_intake = "intake", motor_transfer = "transfer";
     public static String servoArms = "arms", servoHood = "hood", servoStopper = "stopper";
     public static String[] motorShooter = {"down","up"};
     public static String[] motorDriveTrain = {"frontLeft","frontRight","backLeft","backRight"};
@@ -22,7 +22,7 @@ public class Globals {
     public static double xMiddleField;
 
     //MISC -----------------
-    public static boolean start_transfer = false, sotmActive = false, pre_spin;
+    public static boolean start_transfer = false, sotmActive = false, pre_spin , force_flower = false, force_dropdown = false;
 
     public enum Alliance {
         BLUE,

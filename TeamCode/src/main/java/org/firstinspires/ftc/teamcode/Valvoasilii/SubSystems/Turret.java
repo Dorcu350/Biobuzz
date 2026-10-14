@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.Valvoasilii.Utils.Globals;
 
 import dev.frozenmilk.dairy.cachinghardware.CachingServo;
 
-public class Turret {
+public class    Turret {
     final TelemetryManager telemetryM;
     CachingServo servoLeft,servoRight,servoBack;
     Sensors sensors;
@@ -118,16 +118,17 @@ public class Turret {
     }
 
     public Turret(HardwareMap map) {
-        servoLeft = new CachingServo(map.get(Servo.class, Globals.servoTurret[0]));
-        servoRight = new CachingServo(map.get(Servo.class, Globals.servoTurret[1]));
-        servoBack = new CachingServo(map.get(Servo.class, Globals.servoTurret[2]));
+        servoLeft   = new CachingServo(map.get(Servo.class, Globals.servoTurret[0]));
+        servoRight  = new CachingServo(map.get(Servo.class, Globals.servoTurret[1]));
+        servoBack   = new CachingServo(map.get(Servo.class, Globals.servoTurret[2]));
 
-        sensors = new Sensors(map);
+        //servoBack.    setDirection(Servo.Direction.REVERSE);
+        //servoLeft.    setDirection(Servo.Direction.REVERSE);
+        //servoRight.   setDirection(Servo.Direction.REVERSE);
 
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+        sensors     = new Sensors(map);
+        telemetryM  = PanelsTelemetry.INSTANCE.getTelemetry();
 
-        state = State.Normal;
-
-
+        state       = State.Normal;
     }
 }
