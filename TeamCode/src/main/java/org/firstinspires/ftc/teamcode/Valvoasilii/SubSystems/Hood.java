@@ -21,21 +21,13 @@ public class Hood {
 
     public void update() {
 
-        switch(state) {
-            case ShootingSOTM:
-
-                hoodAngle = calculateHoodAngle(Globals.virtualDistanceFromGoal);
-
-                break;
-
-            case ShootingNormal:
-
-                hoodAngle = calculateHoodAngle(Globals.distanceFromGoal);
-
-                break;
-        }
+        if (Globals.sotmActive)
+            hoodAngle = calculateHoodAngle(Globals.virtualDistanceFromGoal);
+        else
+            hoodAngle = calculateHoodAngle(Globals.distanceFromGoal);
 
         hood.setPosition( clamp(hoodAngle) );
+
     }
 
     public double calculateHoodAngle(double distance) {

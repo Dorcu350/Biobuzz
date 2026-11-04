@@ -1,4 +1,4 @@
-5/**
+/**
  * build.common.gradle
  *
  * Try to avoid editing this file, as it may be updated from time to time as the FTC SDK
@@ -19,7 +19,7 @@ import java.util.regex.Pattern
 
 android {
 
-    compileSdkVersion 30
+    compileSdk 34
 
     signingConfigs {
         release {
@@ -112,4 +112,3 @@ android {
 
 repositories {
 }
-

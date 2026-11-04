@@ -3,8 +3,8 @@ package org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems;
 import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 
-import com.bylazar.telemetry.PanelsTelemetry;
-import com.bylazar.telemetry.TelemetryManager;
+//import com.bylazar.telemetry.PanelsTelemetry;
+//import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -18,7 +18,7 @@ import dev.frozenmilk.dairy.cachinghardware.CachingDcMotorEx;
 import dev.frozenmilk.dairy.cachinghardware.CachingServo;
 
 public class Shooter {
-    final TelemetryManager telemetryM;
+//    final TelemetryManager telemetryM;
     CachingDcMotorEx shooterDown,shooterUp;
     CachingServo stopper;
     Sensors sensors;
@@ -94,7 +94,7 @@ public class Shooter {
 
                 if (noError(error)){
                     stopper.setPosition(stopperOpen);
-                    sensors.resetTransfer();
+//                    sensors.resetTransfer();
                 }
                 if (sensors.stopperOpen()) Globals.start_transfer = true;
 
@@ -148,10 +148,10 @@ public class Shooter {
         sensors = new Sensors(map);
 
         voltageSensorShooter = map.voltageSensor.iterator().next();
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+//        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
         state = State.Idle;
-        sensors.resetTransfer();
+//        sensors.resetTransfer();
     }
 
     //            yGoal = (y <= Globals.yCenterBlue) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;

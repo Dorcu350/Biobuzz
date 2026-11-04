@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -12,8 +13,9 @@ import dev.frozenmilk.dairy.cachinghardware.CachingServo;
 public class Intake {
     Sensors sensors;
     CachingDcMotor transfer,intake;
-    CachingServo arms;
-    public double arm_flower, arm_open;
+    CachingServo flower,dropdown;
+    public double flower_down,flower_up;
+    public double intake_down,intake_up;
     public enum State {
         ForceReverse,
         Stop,
@@ -23,26 +25,30 @@ public class Intake {
     }
 
     public State state;
-    private void moveArms(double pos) {arms.setPosition(pos);}
+    private void moveFlower(double pos) {flower.setPosition(pos);}
+    private void moveIntake(double pos) {dropdown.setPosition(pos);}
     private void setPower(double powIntake,double powTransfer) { intake.setPower(powIntake); transfer.setPower(powTransfer); }
 
     public void update() {
         switch (state) {
             case ForceReverse:
 
-                moveArms(arm_open);
-                setPower(-0.5, -1);
+                moveFlower(flower_up);
+                moveIntake(intake_down);
+                setPower(-0.5, -0.5);
 
                 break;
             case Stop:
 
-                moveArms(arm_open);
+                moveFlower(flower_up);
+                moveIntake( Globals.force_drop_intake ? intake_down : intake_up );
                 setPower(0,0);
 
                 break;
             case Shoot:
 
-                moveArms(arm_open);
+                moveFlower(flower_up);
+                moveIntake(intake_down);
                 setPower(1,1);
 
                 if(!Globals.start_transfer)
@@ -51,16 +57,18 @@ public class Intake {
                 break;
             case Intake:
 
-                moveArms(arm_open);
+                moveFlower(flower_up);
                 sensors.checkFullTransfer();
-
-                if(Globals.balls[3]) setPower(0,0);
-                else setPower(1,1);
+                if (Globals.first_ball) setPower(1,0);
+                else if (Globals.fourth_ball) {
+                    setPower(0, 0);
+                    moveIntake( Globals.force_drop_intake ? intake_down : intake_up );
+                } else setPower(1,1);
 
                 break;
             case Flower:
 
-                moveArms(arm_flower);
+
                 setPower(1,1);
 
                 break;
@@ -71,9 +79,12 @@ public class Intake {
     }
 
     public Intake(HardwareMap map) {
-        intake = new CachingDcMotor(map.get(DcMotorEx.class, Globals.motorsIntake[0]));
-        transfer = new CachingDcMotor(map.get(DcMotorEx.class, Globals.motorsIntake[1]));
-        arms = new CachingServo(map.get(Servo.class, Globals.servoArms));
+        intake = new CachingDcMotor(map.get(DcMotorEx.class, Globals.motor_intake));
+        transfer = new CachingDcMotor(map.get(DcMotorEx.class, Globals.motor_transfer));
+        flower = new CachingServo(map.get(Servo.class, Globals.servoFlower));
+        dropdown = new CachingServo(map.get(Servo.class, Globals.servoDropdown));
+
+        transfer.setDirection(DcMotorSimple.Direction.REVERSE);
 
         state = State.Stop;
     }

@@ -2,8 +2,8 @@ package org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems;
 
 import static java.lang.Math.abs;
 
-import com.bylazar.telemetry.PanelsTelemetry;
-import com.bylazar.telemetry.TelemetryManager;
+//import com.bylazar.telemetry.PanelsTelemetry;
+//import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.Valvoasilii.Utils.Globals;
 import dev.frozenmilk.dairy.cachinghardware.CachingServo;
 
 public class Turret {
-    final TelemetryManager telemetryM;
+//    final TelemetryManager telemetryM;
     CachingServo servoLeft,servoRight,servoBack;
     Sensors sensors;
     public static double target_angle, relative_angle, target_position;
@@ -124,7 +124,7 @@ public class Turret {
 
         sensors = new Sensors(map);
 
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+//        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
         state = State.Normal;
 

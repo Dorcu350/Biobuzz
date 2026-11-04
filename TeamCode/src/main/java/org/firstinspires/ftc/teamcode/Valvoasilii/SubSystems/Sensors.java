@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems;
 
+import android.health.connect.changelog.ChangeLogsRequest;
+
 import com.qualcomm.hardware.digitalchickenlabs.OctoQuad;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -14,22 +17,22 @@ public class Sensors {
     DigitalChannel sensor_fourth,sensor_third,sensor_second,sensor_first;
     AnalogInput stopper_a;
     public Limelight3A limelight;
-    public OctoQuad octoquad;
+    GoBildaPinpointDriver pinpoint;
 
 
 
     // TRANSFER -----------------------
 
     public void checkFullTransfer() {
-        if ( !sensor_first.getState() ) Globals.balls[0] = true;
-        if ( Globals.balls[0] && !sensor_second.getState() ) Globals.balls[1] = true;
-        if ( Globals.balls[1] && !sensor_third.getState() ) Globals.balls[2] = true;
-        if ( Globals.balls[2] && !sensor_fourth.getState() ) Globals.balls[3] = true;
+        if ( !sensor_first.getState() ) Globals.first_ball = true;
+        if ( Globals.first_ball && !sensor_second.getState() ) Globals.second_ball = true;
+        if ( Globals.second_ball && !sensor_third.getState() ) Globals.third_ball = true;
+        if ( Globals.third_ball && !sensor_fourth.getState() ) Globals.fourth_ball = true;
     }
 
     public void resetTransfer() {
-        Globals.balls[0] = false; Globals.balls[1] = false;
-        Globals.balls[2] = false; Globals.balls[3] = false;
+        Globals.first_ball = false; Globals.second_ball = false;
+        Globals.third_ball = false; Globals.fourth_ball = false;
     }
 
     public double getTOF(double distance) {return 0;}
@@ -40,10 +43,6 @@ public class Sensors {
     public double readStopperAnalog() { return stopper_a.getVoltage(); }
     public boolean stopperOpen() { return (readStopperAnalog() > 0.0); }
 
-    //OCTOQUAD -----------------------
-    public void resetEncoders() {
-        octoquad.resetAllPositions();
-    }
 
     public Sensors(HardwareMap map) {
         sensor_first = map.get(DigitalChannel.class, "first");
@@ -60,8 +59,7 @@ public class Sensors {
         stopper_a = map.get(AnalogInput.class, "stopper");
         limelight = map.get(Limelight3A.class, "limelight");
 
-        octoquad = map.get(OctoQuad.class, "octoquad");
-        resetEncoders();
+        pinpoint = map.get(GoBildaPinpointDriver.class, "pinpoint");
     }
 
 }
