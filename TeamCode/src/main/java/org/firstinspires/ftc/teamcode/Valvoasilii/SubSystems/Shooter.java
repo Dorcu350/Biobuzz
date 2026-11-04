@@ -3,8 +3,13 @@ package org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems;
 import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 
+<<<<<<< HEAD
 //import com.bylazar.telemetry.PanelsTelemetry;
 //import com.bylazar.telemetry.TelemetryManager;
+=======
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+>>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -94,7 +99,11 @@ public class Shooter {
 
                 if (noError(error)){
                     stopper.setPosition(stopperOpen);
+<<<<<<< HEAD
 //                    sensors.resetTransfer();
+=======
+                    sensors.resetTransfer();
+>>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
                 }
                 if (sensors.stopperOpen()) Globals.start_transfer = true;
 
@@ -134,9 +143,12 @@ public class Shooter {
     }
 
     public Shooter(HardwareMap map) {
-        shooterUp = new CachingDcMotorEx(map.get(DcMotorEx.class, Globals.motorShooter[0]));
+        shooterUp =   new CachingDcMotorEx(map.get(DcMotorEx.class, Globals.motorShooter[0]));
         shooterDown = new CachingDcMotorEx(map.get(DcMotorEx.class, Globals.motorShooter[1]));
+        stopper =     new CachingServo(map.get(Servo.class, Globals.servoStopper));
+        sensors =     new Sensors(map);
 
+<<<<<<< HEAD
         stopper = new CachingServo(map.get(Servo.class, Globals.servoStopper));
 
         shooterUp.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -144,14 +156,28 @@ public class Shooter {
         shooterUp.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterDown.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterDown.setDirection(DcMotorSimple.Direction.REVERSE);
+=======
+        shooterUp      .setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooterDown    .setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooterUp      .setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooterDown    .setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooterDown    .setDirection(DcMotorSimple.Direction.REVERSE);
+>>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
 
         sensors = new Sensors(map);
 
         voltageSensorShooter = map.voltageSensor.iterator().next();
+<<<<<<< HEAD
 //        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
         state = State.Idle;
 //        sensors.resetTransfer();
+=======
+//        telemetryM           = PanelsTelemetry.INSTANCE.getTelemetry();
+
+        state = State.Idle;
+        sensors.resetTransfer();
+>>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
     }
 
     //            yGoal = (y <= Globals.yCenterBlue) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;

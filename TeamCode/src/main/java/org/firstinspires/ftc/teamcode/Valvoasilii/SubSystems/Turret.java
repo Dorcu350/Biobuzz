@@ -2,8 +2,13 @@ package org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems;
 
 import static java.lang.Math.abs;
 
+<<<<<<< HEAD
 //import com.bylazar.telemetry.PanelsTelemetry;
 //import com.bylazar.telemetry.TelemetryManager;
+=======
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+>>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -14,8 +19,13 @@ import org.firstinspires.ftc.teamcode.Valvoasilii.Utils.Globals;
 
 import dev.frozenmilk.dairy.cachinghardware.CachingServo;
 
+<<<<<<< HEAD
 public class Turret {
 //    final TelemetryManager telemetryM;
+=======
+public class    Turret {
+    final TelemetryManager telemetryM;
+>>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
     CachingServo servoLeft,servoRight,servoBack;
     Sensors sensors;
     public static double target_angle, relative_angle, target_position;
@@ -118,6 +128,7 @@ public class Turret {
     }
 
     public Turret(HardwareMap map) {
+<<<<<<< HEAD
         servoLeft = new CachingServo(map.get(Servo.class, Globals.servoTurret[0]));
         servoRight = new CachingServo(map.get(Servo.class, Globals.servoTurret[1]));
         servoBack = new CachingServo(map.get(Servo.class, Globals.servoTurret[2]));
@@ -129,5 +140,19 @@ public class Turret {
         state = State.Normal;
 
 
+=======
+        servoLeft   = new CachingServo(map.get(Servo.class, Globals.servoTurret[0]));
+        servoRight  = new CachingServo(map.get(Servo.class, Globals.servoTurret[1]));
+        servoBack   = new CachingServo(map.get(Servo.class, Globals.servoTurret[2]));
+
+        //servoBack.    setDirection(Servo.Direction.REVERSE);
+        //servoLeft.    setDirection(Servo.Direction.REVERSE);
+        //servoRight.   setDirection(Servo.Direction.REVERSE);
+
+        sensors     = new Sensors(map);
+        telemetryM  = PanelsTelemetry.INSTANCE.getTelemetry();
+
+        state       = State.Normal;
+>>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
     }
 }

@@ -168,6 +168,10 @@ class TestsLine extends TuningOpMode<Boolean> {
         Follower follower = followerFunction.apply(hardwareMap);
         follower.setPose(Pose.zero());
 
+<<<<<<< HEAD
+=======
+        double distance = 48;
+>>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
         boolean forward = true;
 
         Path path1 = line(Pose.zero(), new Pose(distance,0, 0)).constant(0);
@@ -209,6 +213,10 @@ class TestsCurve extends TuningOpMode<Boolean> {
         Follower follower = followerFunction.apply(hardwareMap);
         follower.setPose(Pose.zero());
 
+<<<<<<< HEAD
+=======
+        double distance = 48;
+>>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
         boolean forward = true;
 
         Path path1 = curve(Pose.zero(), new Pose(distance + 0,0), new Pose(distance,distance)).tangent();
@@ -250,6 +258,10 @@ class TestsInterpolation extends TuningOpMode<Boolean> {
         Follower follower = followerFunction.apply(hardwareMap);
         follower.setPose(Pose.zero());
 
+<<<<<<< HEAD
+=======
+        double distance = 48;
+>>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
         boolean forward = true;
 
         Path path1 = curve(Pose.zero(), new Pose(distance + 0,0), new Pose(distance,distance)).heading((curve, t) -> Math.PI);

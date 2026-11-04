@@ -12,11 +12,14 @@ public class Hood {
     CachingServo hood;
     public static double min = 0.0 , max = 1.0;
     public static double hoodAngle;
+<<<<<<< HEAD
     public enum State {
         ShootingNormal,
         ShootingSOTM
     }
     public static State state;
+=======
+>>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
     private double clamp(double value) { return Math.max(min, Math.min(max,value)); }
 
     public void update() {
@@ -36,7 +39,10 @@ public class Hood {
 
     public Hood(HardwareMap map) {
         hood = new CachingServo(map.get(Servo.class, Globals.servoHood));
+<<<<<<< HEAD
 
         state = State.ShootingSOTM;
+=======
+>>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
     }
 }
