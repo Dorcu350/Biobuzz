@@ -8,23 +8,23 @@ import com.pedropathing.math.Matrix;
 import com.pedropathing.math.Vector2D;
 import com.pedropathing.revhub.drivetrains.Mecanum;
 import com.pedropathing.revhub.drivetrains.MecanumConfig;
-<<<<<<< HEAD
+//<<<<<<< HEAD
 import com.pedropathing.revhub.localizers.PinpointConfig;
 import com.pedropathing.revhub.localizers.PinpointLocalizer;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-=======
+//=======
 import com.pedropathing.revhub.localizers.OctoQuadConfig;
 import com.pedropathing.revhub.localizers.OctoQuadLocalizer;
 import com.qualcomm.hardware.digitalchickenlabs.OctoQuad;
->>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
+//>>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
-<<<<<<< HEAD
+//<<<<<<< HEAD
 
     public static MecanumConfig drivetrainConfig = new MecanumConfig(c -> {
         c.frontLeftName.set("motor_fl");
@@ -39,50 +39,22 @@ public class Constants {
     });
 
 
-    public static PinpointConfig localizerConfig = new PinpointConfig(
-            c -> {
-                c.name.set("pinpoint");
-                c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-                c.xPodOffset.set(-5.945);
-                c.yPodOffset.set(-3.15);
-                c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
-                c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.REVERSED);
-                c.globalDistanceUnit.set(DistanceUnit.INCH);
-                c.offsetUnits.set(DistanceUnit.INCH);
-            }
-    );
+    public static OctoQuadConfig localizerConfig = new OctoQuadConfig(c -> {
+        c.name.set("octo");
+        c.xPodPort.set(0);
+        c.yPodPort.set(1);
+        c.ticksPerUnit.set(505.316944406);
+        c.xPodOffset.set(0.4330708661417323);
+        c.yPodOffset.set(-2.5590551181102366);
+        c.xPodDirection.set(OctoQuad.EncoderDirection.REVERSE);
+        c.yPodDirection.set(OctoQuad.EncoderDirection.REVERSE);
+        c.globalDistanceUnit.set(DistanceUnit.INCH);
+        c.offsetUnits.set(DistanceUnit.INCH);
+        c.i2cRecoveryMode.set(OctoQuad.I2cRecoveryMode.MODE_1_PERIPH_RST_ON_FRAME_ERR);
+        c.headingScalar.set(1.2732741075628808);
+    });
 
-=======
-    public static MecanumConfig driveConfig = new MecanumConfig(
-            c -> {
-                c.frontLeftName.set("left_front");
-                c.backLeftName.set("left_back");
-                c.frontRightName.set("right_front");
-                c.backRightName.set("right_back");
 
-                c.frontLeftDirection.set(DcMotorSimple.Direction.REVERSE);
-                c.backLeftDirection.set(DcMotorSimple.Direction.REVERSE);
-                c.frontRightDirection.set(DcMotorSimple.Direction.FORWARD);
-                c.backRightDirection.set(DcMotorSimple.Direction.FORWARD);
-
-                c.manualBrakeMode.set(true);
-            }
-    );
-
-    public static OctoQuadConfig localizerConfig = new OctoQuadConfig(
-            c -> {
-                c.name.set("octoquad");          // numele din Configuration pe Driver Hub
-                c.xPodPort.set(0);               // portul pe OctoQuad al pod-ului forward
-                c.yPodPort.set(1);               // portul pe OctoQuad al pod-ului strafe
-                c.xPodDirection.set(OctoQuad.EncoderDirection.FORWARD);
-                c.yPodDirection.set(OctoQuad.EncoderDirection.FORWARD);
-                c.xPodOffset.set(0.0);           // inch, din AutoTune sau măsurat
-                c.yPodOffset.set(0.0);           // inch
-                c.encoderResolutionUnit.set(DistanceUnit.MM);
-                c.ticksPerUnit.set(19.89436789); // goBILDA 4-Bar; Swingarm = 13.26291192
-            }
-    );
->>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
 
     public static ForesightConfig foresightConfig = new ForesightConfig(
             c -> {
@@ -107,13 +79,8 @@ public class Constants {
 
     public static Follower create(HardwareMap h) {
         return new Follower(
-<<<<<<< HEAD
-                new PinpointLocalizer(h, localizerConfig),
-                new Mecanum(h, drivetrainConfig),
-=======
                 new OctoQuadLocalizer(h, localizerConfig),
-                new Mecanum(h, driveConfig),
->>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
+                new Mecanum(h, drivetrainConfig),
                 new Foresight(foresightConfig)
         );
     }

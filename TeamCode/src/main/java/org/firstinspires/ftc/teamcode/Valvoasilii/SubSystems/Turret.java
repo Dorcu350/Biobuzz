@@ -1,14 +1,8 @@
 package org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems;
 
-import static java.lang.Math.abs;
-
-<<<<<<< HEAD
-//import com.bylazar.telemetry.PanelsTelemetry;
-//import com.bylazar.telemetry.TelemetryManager;
-=======
+import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
->>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -19,15 +13,12 @@ import org.firstinspires.ftc.teamcode.Valvoasilii.Utils.Globals;
 
 import dev.frozenmilk.dairy.cachinghardware.CachingServo;
 
-<<<<<<< HEAD
+@Configurable
 public class Turret {
-//    final TelemetryManager telemetryM;
-=======
-public class    Turret {
     final TelemetryManager telemetryM;
->>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
-    CachingServo servoLeft,servoRight,servoBack;
+    CachingServo servoLeft,servoRight,servoCenter;
     Sensors sensors;
+    public static double pos_test = 0.5;
     public static double target_angle, relative_angle, target_position;
     public static double shooterWorldX , shooterWorldY , heading_comp;
     public static double MIN_ANGLE,  MAX_ANGLE, MIN_POS, MAX_POS, offset;
@@ -37,7 +28,11 @@ public class    Turret {
         Normal
     }
     public static State state;
-    public void moveTo(double pos) { servoLeft.setPosition(pos); servoRight.setPosition(pos); servoBack.setPosition(pos);}
+    public void moveTo(double pos) { servoLeft.setPosition(pos); servoRight.setPosition(pos); servoCenter.setPosition(pos);}
+
+    public void test() {
+        moveTo(pos_test);
+    }
 
     public void update(double x, double y, double vx, double vy, double vh,double heading) {
 
@@ -121,38 +116,25 @@ public class    Turret {
                 break;
             case Normal:
 
-                moveTo(target_position);
+//                moveTo(target_position);
+                moveTo(pos_test);
+
 
                 break;
         }
     }
 
     public Turret(HardwareMap map) {
-<<<<<<< HEAD
-        servoLeft = new CachingServo(map.get(Servo.class, Globals.servoTurret[0]));
-        servoRight = new CachingServo(map.get(Servo.class, Globals.servoTurret[1]));
-        servoBack = new CachingServo(map.get(Servo.class, Globals.servoTurret[2]));
+        servoLeft   = new CachingServo(map.get(Servo.class, Globals.servo_left));
+        servoRight  = new CachingServo(map.get(Servo.class, Globals.servo_right));
+        servoCenter   = new CachingServo(map.get(Servo.class, Globals.servo_center));
 
-        sensors = new Sensors(map);
-
-//        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-
-        state = State.Normal;
-
-
-=======
-        servoLeft   = new CachingServo(map.get(Servo.class, Globals.servoTurret[0]));
-        servoRight  = new CachingServo(map.get(Servo.class, Globals.servoTurret[1]));
-        servoBack   = new CachingServo(map.get(Servo.class, Globals.servoTurret[2]));
-
-        //servoBack.    setDirection(Servo.Direction.REVERSE);
-        //servoLeft.    setDirection(Servo.Direction.REVERSE);
-        //servoRight.   setDirection(Servo.Direction.REVERSE);
+        servoLeft.    setDirection(Servo.Direction.REVERSE);
+        servoRight.   setDirection(Servo.Direction.REVERSE);
 
         sensors     = new Sensors(map);
         telemetryM  = PanelsTelemetry.INSTANCE.getTelemetry();
 
         state       = State.Normal;
->>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
     }
 }

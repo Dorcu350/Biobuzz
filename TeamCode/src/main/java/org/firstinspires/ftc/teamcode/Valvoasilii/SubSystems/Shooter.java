@@ -3,13 +3,13 @@ package org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems;
 import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 
-<<<<<<< HEAD
-//import com.bylazar.telemetry.PanelsTelemetry;
-//import com.bylazar.telemetry.TelemetryManager;
-=======
+//<<<<<<< HEAD
+import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
->>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
+//=======
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -22,16 +22,17 @@ import org.firstinspires.ftc.teamcode.Valvoasilii.Utils.Globals;
 import dev.frozenmilk.dairy.cachinghardware.CachingDcMotorEx;
 import dev.frozenmilk.dairy.cachinghardware.CachingServo;
 
+@Configurable
 public class Shooter {
-//    final TelemetryManager telemetryM;
+    final TelemetryManager telemetryM;
     CachingDcMotorEx shooterDown,shooterUp;
     CachingServo stopper;
     Sensors sensors;
     public static double kP , kV , kS;
-    public static double targetVel , error;
-    public static double stopperOpen , stopperClose;
-    public static double shooterWorldX , shooterWorldY;
-    public static boolean start = false;
+    public static double targetVel , error, testVel;
+    public static double stopperOpen = 0.325 , stopperClose = 0.25;
+    public double shooterWorldX , shooterWorldY;
+    public boolean start = false;
     double xGoal, yGoal;
     VoltageSensor voltageSensorShooter;
     public enum State {
@@ -41,7 +42,6 @@ public class Shooter {
     public static State state;
 
     public void setPower(double power) { shooterDown.setPower(power); shooterUp.setPower(power); }
-
 
     public void update(double x, double y, double vx, double vy, double heading) {
 
@@ -73,7 +73,9 @@ public class Shooter {
             double predRobotY = shooterWorldY + (cleanVy * timeToGoal);
 
             Globals.virtualDistanceFromGoal = Math.hypot(xGoal - predRobotX, yGoal - predRobotY);
-            targetVel = calculateShooterRPM(Globals.virtualDistanceFromGoal);
+//            targetVel = calculateShooterRPM(Globals.virtualDistanceFromGoal);
+            targetVel = calculateShooterRPM(testVel);
+
         } else {
             Globals.distanceFromGoal = Math.hypot(xGoal - shooterWorldX,  yGoal - shooterWorldY);
 
@@ -97,14 +99,10 @@ public class Shooter {
                 Globals.pre_spin = false;
                 Globals.start_transfer = true;
 
-                if (noError(error)){
+//                if (noError(error)){
                     stopper.setPosition(stopperOpen);
-<<<<<<< HEAD
-//                    sensors.resetTransfer();
-=======
                     sensors.resetTransfer();
->>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
-                }
+//                }
                 if (sensors.stopperOpen()) Globals.start_transfer = true;
 
                 break;
@@ -134,21 +132,22 @@ public class Shooter {
 
         } else setPower(0);
     }
-    public boolean noError(double error) {
-        return (abs(error) <= 80);
-    }
+//    public boolean noError(double error) {
+//        return (abs(error) <= 80);
+//    }
 
     public double calculateShooterRPM(double distance) {
         return distance;
     }
 
-    public Shooter(HardwareMap map) {
-        shooterUp =   new CachingDcMotorEx(map.get(DcMotorEx.class, Globals.motorShooter[0]));
-        shooterDown = new CachingDcMotorEx(map.get(DcMotorEx.class, Globals.motorShooter[1]));
-        stopper =     new CachingServo(map.get(Servo.class, Globals.servoStopper));
-        sensors =     new Sensors(map);
+    public boolean is_shooting() {
+        return Shooter.state == State.Shoot;
+    }
 
-<<<<<<< HEAD
+    public Shooter(HardwareMap map) {
+        shooterUp =   new CachingDcMotorEx(map.get(DcMotorEx.class, Globals.shooter_up));
+        shooterDown = new CachingDcMotorEx(map.get(DcMotorEx.class, Globals.shooter_down));
+        stopper =     new CachingServo(map.get(Servo.class, Globals.servoStopper));
         stopper = new CachingServo(map.get(Servo.class, Globals.servoStopper));
 
         shooterUp.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -156,30 +155,14 @@ public class Shooter {
         shooterUp.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterDown.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterDown.setDirection(DcMotorSimple.Direction.REVERSE);
-=======
-        shooterUp      .setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooterDown    .setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooterUp      .setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        shooterDown    .setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        shooterDown    .setDirection(DcMotorSimple.Direction.REVERSE);
->>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
 
         sensors = new Sensors(map);
-
         voltageSensorShooter = map.voltageSensor.iterator().next();
-<<<<<<< HEAD
-//        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
-        state = State.Idle;
-//        sensors.resetTransfer();
-=======
-//        telemetryM           = PanelsTelemetry.INSTANCE.getTelemetry();
+        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
         state = State.Idle;
         sensors.resetTransfer();
->>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
     }
-
-    //            yGoal = (y <= Globals.yCenterBlue) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
 
 }

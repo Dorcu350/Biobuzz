@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -8,18 +9,16 @@ import org.opencv.core.Mat;
 
 import dev.frozenmilk.dairy.cachinghardware.CachingServo;
 
+@Configurable
 public class Hood {
     CachingServo hood;
     public static double min = 0.0 , max = 1.0;
-    public static double hoodAngle;
-<<<<<<< HEAD
+    public static double hoodAngle, hood_test;
     public enum State {
         ShootingNormal,
         ShootingSOTM
     }
     public static State state;
-=======
->>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
     private double clamp(double value) { return Math.max(min, Math.min(max,value)); }
 
     public void update() {
@@ -29,7 +28,8 @@ public class Hood {
         else
             hoodAngle = calculateHoodAngle(Globals.distanceFromGoal);
 
-        hood.setPosition( clamp(hoodAngle) );
+//        hood.setPosition( clamp(hoodAngle) );
+        hood.setPosition( clamp(hood_test) );
 
     }
 
@@ -39,10 +39,7 @@ public class Hood {
 
     public Hood(HardwareMap map) {
         hood = new CachingServo(map.get(Servo.class, Globals.servoHood));
-<<<<<<< HEAD
 
         state = State.ShootingSOTM;
-=======
->>>>>>> e5373d65ab5ddba0c81d89c88aa3dfda32a939a1
     }
 }

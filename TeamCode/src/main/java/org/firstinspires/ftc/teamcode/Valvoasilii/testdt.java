@@ -1,11 +1,11 @@
 package org.firstinspires.ftc.teamcode.Valvoasilii;
 
-import com.acmerobotics.dashboard.config.Config;
+//import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
-@Config
+//@Config
 @TeleOp(name = "Test DT", group = "Test")
 public class testdt extends LinearOpMode {
     DcMotorEx fl, fr, bl, br;
