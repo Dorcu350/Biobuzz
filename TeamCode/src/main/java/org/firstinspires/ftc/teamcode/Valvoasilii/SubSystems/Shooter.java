@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems;
 
+import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 
 import com.pedropathing.math.Pose;
+import com.pedropathing.revhub.drivetrains.CachedMotor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -19,6 +21,7 @@ import dev.frozenmilk.dairy.cachinghardware.CachingServo;
 
 @Configurable
 public class Shooter {
+    Motor gay;
     final TelemetryManager telemetryM;
     CachingDcMotorEx shooter;
     CachingServo stopper;
@@ -43,17 +46,6 @@ public class Shooter {
         shooterWorldX = x + (Globals.shooterOffset * Math.cos(heading));
         shooterWorldY = y + (Globals.shooterOffset * Math.sin(heading));
 
-        // GOAL SELECTION ----------------------------------------------------
-
-//        if (Globals.alliance == Globals.Alliance.BLUE) {
-//            yGoal = (y <= Globals.xMiddleField) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
-//            xGoal = Globals.xGoalBlue;
-//        }
-//        else {
-//            yGoal = (y <= Globals.xMiddleField) ? Globals.yGoalRedLeft : Globals.yGoalRedRight;
-//            xGoal = Globals.xGoalRed;
-//        }
-
         Pose selectedGoal = Globals.getSelectedGoal(Globals.alliance,new Pose(x,y));
         xGoal = selectedGoal.x();
         yGoal = selectedGoal.y();
@@ -72,14 +64,14 @@ public class Shooter {
             double predRobotY = shooterWorldY + (cleanVy * timeToGoal);
 
             Globals.virtualDistanceFromGoal = Math.hypot(xGoal - predRobotX, yGoal - predRobotY);
-//            targetVel = calculateShooterRPM(Globals.virtualDistanceFromGoal);
-//            targetVel = calculateShooterRPM(testVel);
+            targetVel = calculateShooterRPM(Globals.virtualDistanceFromGoal);
 
         } else {
             Globals.distanceFromGoal = Math.hypot(xGoal - shooterWorldX,  yGoal - shooterWorldY);
-
-//            targetVel = calculateShooterRPM(Globals.distanceFromGoal);
+            targetVel = calculateShooterRPM(Globals.distanceFromGoal);
         }
+
+        targetVel += Globals.shooterOffset;
 
         double vel = shooter.getVelocity();
         error = targetVel - vel;
@@ -131,16 +123,15 @@ public class Shooter {
     }
 
     public double calculateShooterRPM(double distance) {
-        return distance;
+        return targetVel;
     }
-
     public boolean is_shooting() {
         return Shooter.state == State.Shoot;
     }
 
     public Shooter(HardwareMap map) {
-        shooter = new CachingDcMotorEx(map.get(DcMotorEx.class, "shooter"));
-        stopper = new CachingServo(map.get(Servo.class, Globals.servoStopper));
+        shooter = new CachingDcMotorEx(map.get(DcMotorEx.class, Globals.motor_shooter));
+        stopper = new CachingServo(map.get(Servo.class, Globals.servo_stopper));
 
         shooter.setDirection(DcMotorSimple.Direction.FORWARD);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);

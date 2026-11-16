@@ -9,11 +9,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-//import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Hood;
 import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Intake;
 import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Sensors;
 import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Shooter;
-//import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Turret;
 import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Turret;
 import org.firstinspires.ftc.teamcode.Valvoasilii.Utils.Globals;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -24,11 +22,16 @@ public class TeleOpRed extends LinearOpMode {
     Follower follower;
     Turret turret;
     Intake intake;
-//    Hood hood;
     Sensors sensors;
     ElapsedTime timer = new ElapsedTime();
+    ElapsedTime loops = new ElapsedTime();
     Pose startingPose = new Pose(7.25, 6.12, Math.toRadians(0));
-    double orbitx = 0,orbity = 0,orbitheading = 0;
+//    Pose[] resetPose = {
+//            new Pose(7.25, 6.12, Math.toRadians(0)),
+//            new Pose(0,0,Math.toRadians(0)),
+//            new Pose(0,0,Math.toRadians(0)),
+//            new Pose(0,0,Math.toRadians(0))
+//    };
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -36,10 +39,10 @@ public class TeleOpRed extends LinearOpMode {
         shooter = new Shooter(hardwareMap);
         turret = new Turret(hardwareMap);
         intake = new Intake(hardwareMap);
-//        hood = new Hood(hardwareMap);
         sensors = new Sensors(hardwareMap);
 
         Globals.alliance = Globals.Alliance.RED;
+        Globals.faze = Globals.Faze.TeleOp;
 
         follower.setPose(startingPose);
         follower.update();
@@ -52,6 +55,8 @@ public class TeleOpRed extends LinearOpMode {
 
         waitForStart();
 
+        loops.startTime();
+
         while (opModeIsActive()) {
             DrivePowers powers = ManualDrive.fieldCentric(
                     gamepad1.left_stick_y,
@@ -61,10 +66,6 @@ public class TeleOpRed extends LinearOpMode {
             );
 
             follower.manual(powers);
-
-            if (gamepad1.options) {
-                follower.setPose(new Pose(follower.pose().x(), follower.pose().y(), 0));
-            }
 
             if(gamepad1.right_trigger >= 0.25) {
                 Intake.state = Intake.State.Transfer;
@@ -93,11 +94,48 @@ public class TeleOpRed extends LinearOpMode {
                 timer.reset();
             }
 
-            if (gamepad1.dpad_up) {
-                orbitx = follower.pose().x();
-                orbity = follower.pose().y();
-                orbitheading = follower.pose().heading();
+            // Failsafe buttons
+
+            if (gamepad2.right_bumper && timer.milliseconds() > 250) {
+                Globals.offset_turret += 0.5;
+                timer.reset();
             }
+
+            if (gamepad2.left_bumper && timer.milliseconds() > 250) {
+                Globals.offset_turret -= 0.5;
+                timer.reset();
+            }
+
+            if (gamepad2.x) Globals.offset_shooter += 20;
+
+            if (gamepad2.circle) Globals.offset_shooter -= 20;
+
+            if (gamepad2.options || gamepad1.options) {
+                follower.setPose(new Pose(startingPose.x(), startingPose.y(), startingPose.heading()));
+                Globals.offset_shooter = 0.0;
+                Globals.offset_turret = 0.0;
+            }
+
+//            if (gamepad2.options) {
+//                Pose current = follower.pose();
+//
+//                int closestIndex = 0;
+//                double closesetDistance = 144.5;
+//
+//                for (int i = 0; i < resetPose.length; i++) {
+//                    double distance = Math.hypot(resetPose[i].x() - current.x(), resetPose[i].y() - current.y());
+//
+//                    if (distance < closesetDistance) {
+//                        closesetDistance = distance;
+//                        closestIndex = i;
+//                    }
+//                }
+//
+//                Globals.offset_shooter = 0.0;
+//                Globals.offset_turret = 0.0;
+//                follower.setPose(resetPose[closestIndex]);
+//            }
+
 
             follower.update();
 
@@ -106,40 +144,51 @@ public class TeleOpRed extends LinearOpMode {
             shooter.update(pose.x(), pose.y(), velo.vx, velo.vy, pose.heading());
             turret.update(pose.x(), pose.y(), velo.vx, velo.vy, velo.omega , pose.heading());
             intake.update();
-//            hood.update();
 
             Pose selectedGoal = Globals.getSelectedGoal(Globals.alliance,new Pose(pose.x(), pose.y()));
 
-            telemetry.update();
+            telemetry.addLine(" -- sensors voltage -- ");
 
-            telemetry.addData("first senzor v ", sensors.first_sensor.getVoltage());
-            telemetry.addData("second senzor v ", sensors.second_sensor.getVoltage());
-            telemetry.addData("third senzor v ", sensors.third_sensor.getVoltage());
-            telemetry.addData("fourth senzor v ", sensors.fourth_sensor.getVoltage());
+            telemetry.addData("first senspr v: ", sensors.first_sensor.getVoltage());
+            telemetry.addData("second sensor v: ", sensors.second_sensor.getVoltage());
+            telemetry.addData("third sensor v: ", sensors.third_sensor.getVoltage());
+            telemetry.addData("fourth sensor v: ", sensors.fourth_sensor.getVoltage());
+            telemetry.addData("stopper v: ", sensors.readStopperAnalog());
 
-            telemetry.addData("stopper v", sensors.readStopperAnalog());
+            telemetry.addLine(" -- shooter values -- ");
 
             telemetry.addData("vel" , Globals.currentVel);
             telemetry.addData("error, ",Globals.error);
 
-            telemetry.addData("first ball", Globals.first_ball);
-            telemetry.addData("2 ball", Globals.second_ball);
-            telemetry.addData("third ball", Globals.third_ball);
-            telemetry.addData("last ball", Globals.fourth_ball);
+            telemetry.addLine(" -- balls in robot -- ");
 
-            telemetry.addData("current goal", Globals.currentGoal);
+            telemetry.addData("first ball", Globals.first_ball);
+            telemetry.addData("second ball", Globals.second_ball);
+            telemetry.addData("third ball", Globals.third_ball);
+            telemetry.addData("fourth ball", Globals.fourth_ball);
+
+            telemetry.addLine(" -- looking at goal -- ");
 
             telemetry.addData("looking at x: ", selectedGoal.x());
             telemetry.addData("looking at y: ", selectedGoal.y());
-            telemetry.addData("distance to seleceted goal: ", Globals.distanceFromSelectedGoal);
+
+            telemetry.addLine(" -- robot pose -- ");
 
             telemetry.addData("x", pose.x());
             telemetry.addData("y", pose.y());
             telemetry.addData("heading", Math.toDegrees(pose.heading()));
 
-            telemetry.addData("differential x", (orbitx - pose.x()));
-            telemetry.addData("differntial y", (orbity - pose.y()));
-            telemetry.addData("differential heading", (orbitheading - pose.heading()));
+            telemetry.addLine(" -- offsets -- ");
+
+            telemetry.addData("offset turret deg: ", Globals.offset_turret);
+            telemetry.addData("offset shooter vel: ", Globals.offset_shooter);
+
+            telemetry.addLine(" -- loop time -- ");
+
+            telemetry.addData("miliseconds: ", loops.milliseconds());
+
+            telemetry.update();
+            loops.reset();
         }
     }
 }

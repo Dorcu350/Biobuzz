@@ -49,6 +49,7 @@ public class Intake {
             case Stopped:
                 intake.setPower(0);
                 transfer.setPower(0);
+                dropdown.setPosition(dropdown_up);
 //                flower.setPosition( (Globals.force_flower) ? flower_down : flower_up );
 
                 break;
@@ -71,14 +72,14 @@ public class Intake {
         return intake.getPower() != 0;
     }
     public Intake(HardwareMap hardwareMap) {
-        intake   = new CachingDcMotorEx(hardwareMap.get(DcMotorEx.class, "intake"));
-        transfer = new CachingDcMotorEx(hardwareMap.get(DcMotorEx.class, "transfer"));
-        flower   = new CachingServo(hardwareMap.get(Servo.class, "flower")); // TODO: numele din config
-        dropdown = new CachingServo(hardwareMap.get(Servo.class, "dropdown")); // TODO: numele din config
+        intake   = new CachingDcMotorEx(hardwareMap.get(DcMotorEx.class, Globals.motor_intake));
+        transfer = new CachingDcMotorEx(hardwareMap.get(DcMotorEx.class, Globals.motor_transfer));
+        flower   = new CachingServo(hardwareMap.get(Servo.class, Globals.servo_flower));
+        dropdown = new CachingServo(hardwareMap.get(Servo.class, Globals.servo_dropdown));
 
         sensors = new Sensors(hardwareMap);
 
-        transfer.setCachingTolerance(0.05);
+//        transfer.setCachingTolerance(0.05);
         transfer.setDirection(DcMotorSimple.Direction.REVERSE);
 
 

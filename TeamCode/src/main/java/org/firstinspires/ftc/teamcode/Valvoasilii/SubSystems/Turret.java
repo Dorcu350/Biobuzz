@@ -21,8 +21,8 @@ public class Turret {
     Sensors sensors;
     public static double pos_test = 0.56;
     public static double target_angle, relative_angle, target_position;
-    public static double shooterWorldX , shooterWorldY , heading_comp;
-    public static double MIN_ANGLE = -160,  MAX_ANGLE = 160, MIN_POS = 0.186, MAX_POS = 0.933, offset;
+    public static double shooterWorldX, shooterWorldY;
+    public static double MIN_ANGLE = -160,  MAX_ANGLE = 160, MIN_POS = 0.186, MAX_POS = 0.933, heading_comp;
     //max pos 0.92
     //min pos 0.182
     public static double xGoal, yGoal;
@@ -32,11 +32,6 @@ public class Turret {
     }
     public static State state;
     public void moveTo(double pos) { servoLeft.setPosition(pos); servoRight.setPosition(pos); servoCenter.setPosition(pos);}
-//    public void moveTo(double pos) {servoRight.setPosition(pos);}
-
-    public void test() {
-        moveTo(pos_test);
-    }
 
     public void update(double x, double y, double vx, double vy, double vh,double heading) {
 
@@ -61,12 +56,18 @@ public class Turret {
 
             double ghostX, ghostY;
 
-            // GOAL SELECTION ----------------------------------------------------
-
             double timeToGoal = sensors.getTOF(Globals.virtualDistanceFromGoal);
+
             ghostX = shooterWorldX + (cleanVx * timeToGoal);
             ghostY = shooterWorldY + (cleanVy * timeToGoal);
 
+//            double rotationalVx = -cleanVh * Globals.shooterOffset * Math.sin(heading);
+//            double rotationalVy =  cleanVh * Globals.shooterOffset * Math.cos(heading);
+//
+//            ghostX = shooterWorldX + (cleanVx + rotationalVx) * timeToGoal;
+//            ghostY = shooterWorldY + (cleanVy + rotationalVy) * timeToGoal;
+//
+//            target_angle = Math.atan2(ghostY - shooterWorldY, ghostX - shooterWorldX) + Math.PI;
             target_angle = Math.atan2(ghostY - shooterWorldY, ghostX - shooterWorldX) + Math.PI + cleanVh * heading_comp;
 
         } else
@@ -76,7 +77,7 @@ public class Turret {
 
         target_angle = AngleUnit.normalizeRadians(target_angle);
 
-        relative_angle = Math.toDegrees(AngleUnit.normalizeRadians(target_angle - heading)) + offset;
+        relative_angle = Math.toDegrees(AngleUnit.normalizeRadians(target_angle - heading)) + Globals.offset_turret;
 
         relative_angle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, relative_angle));
 
@@ -92,7 +93,7 @@ public class Turret {
                 break;
             case Normal:
 
-//                moveTo(target_position);
+                moveTo(target_position);
 //                moveTo(pos_test);
 
 

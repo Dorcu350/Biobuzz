@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems;
 
-import android.health.connect.changelog.ChangeLogsRequest;
+//import android.health.connect.changelog.ChangeLogsRequest;
 
 import com.qualcomm.hardware.digitalchickenlabs.OctoQuad;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
@@ -47,7 +47,5 @@ public class Sensors {
         stopper_a = map.get(AnalogInput.class, "stopper_a");
 
         octoQuad = map.get(OctoQuad.class, "octo");
-//        octoQuad.setSingleEncoderDirection(3, OctoQuad.EncoderDirection.FORWARD);
-//        octoQuad.setSingleVelocitySampleInterval(3, 100);
     }
 }
