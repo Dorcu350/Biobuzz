@@ -5,6 +5,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.ManualDrive;
 import com.pedropathing.math.Pose;
 import com.pedropathing.math.Velocity;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -15,6 +16,8 @@ import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Shooter;
 import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Turret;
 import org.firstinspires.ftc.teamcode.Valvoasilii.Utils.Globals;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
+import java.util.List;
 
 @TeleOp(name = "TeleOp Red")
 public class TeleOpRed extends LinearOpMode {
@@ -55,9 +58,17 @@ public class TeleOpRed extends LinearOpMode {
 
         waitForStart();
 
+        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
+
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
+
         loops.startTime();
 
         while (opModeIsActive()) {
+            for (LynxModule hub : allHubs) hub.clearBulkCache();
+
             DrivePowers powers = ManualDrive.fieldCentric(
                     gamepad1.left_stick_y,
                     -gamepad1.left_stick_x,
