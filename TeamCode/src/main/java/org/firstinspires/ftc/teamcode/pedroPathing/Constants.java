@@ -44,14 +44,14 @@ public class Constants {
         c.xPodPort.set(0);
         c.yPodPort.set(1);
         c.ticksPerUnit.set(505.316944406);
-        c.xPodOffset.set(0.4330708661417323);
-        c.yPodOffset.set(-2.5590551181102366);
+        c.xPodOffset.set(-1.51829); //3.69118
+        c.yPodOffset.set(-7.34673); // -0.20581
         c.xPodDirection.set(OctoQuad.EncoderDirection.REVERSE);
         c.yPodDirection.set(OctoQuad.EncoderDirection.REVERSE);
         c.globalDistanceUnit.set(DistanceUnit.INCH);
         c.offsetUnits.set(DistanceUnit.INCH);
         c.i2cRecoveryMode.set(OctoQuad.I2cRecoveryMode.MODE_1_PERIPH_RST_ON_FRAME_ERR);
-        c.headingScalar.set(1.2732741075628808);
+        c.headingScalar.set(1.0198278675109866);
     });
 
 

@@ -9,24 +9,26 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Hood;
+//import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Hood;
 import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Intake;
 import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Sensors;
 import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Shooter;
+//import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Turret;
 import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Turret;
 import org.firstinspires.ftc.teamcode.Valvoasilii.Utils.Globals;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@TeleOp(name = "TeleOp Blue")
-public class TeleOpBlue extends LinearOpMode {
+@TeleOp(name = "TeleOp Red")
+public class TeleOpRed extends LinearOpMode {
     Shooter shooter;
     Follower follower;
     Turret turret;
     Intake intake;
-    Hood hood;
+//    Hood hood;
     Sensors sensors;
     ElapsedTime timer = new ElapsedTime();
-    Pose startingPose = new Pose(0, 0, Math.toRadians(0));
+    Pose startingPose = new Pose(7.25, 6.12, Math.toRadians(0));
+    double orbitx = 0,orbity = 0,orbitheading = 0;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -34,8 +36,10 @@ public class TeleOpBlue extends LinearOpMode {
         shooter = new Shooter(hardwareMap);
         turret = new Turret(hardwareMap);
         intake = new Intake(hardwareMap);
-        hood = new Hood(hardwareMap);
+//        hood = new Hood(hardwareMap);
         sensors = new Sensors(hardwareMap);
+
+        Globals.alliance = Globals.Alliance.RED;
 
         follower.setPose(startingPose);
         follower.update();
@@ -66,27 +70,34 @@ public class TeleOpBlue extends LinearOpMode {
                 Intake.state = Intake.State.Transfer;
                 Shooter.state = Shooter.State.Shoot;
             } else {
-                Intake.state = Intake.State.Intake;
+                if(Intake.state == Intake.State.Transfer)
+                    Intake.state = Intake.State.Intake;
                 Shooter.state = Shooter.State.Idle;
             }
-            // vezi ca nu merg start / stop ca forteaza trasul sa fie in intake
-//            if(gamepad1.left_bumper && !shooter.is_shooting() && timer.milliseconds() > 250) {
-//                if(intake.is_intaking())
-//                    Intake.state = Intake.State.Stopped;
-//                else
-//                    Intake.state = Intake.State.Intake;
-//
-//                timer.reset();
-//            }
-//
-//            if(gamepad1.dpad_left && timer.milliseconds() > 250) {
-//                if(intake.is_intaking())
-//                    Intake.state = Intake.State.Stopped;
-//                else
-//                    Intake.state = Intake.State.Reverse;
-//
-//                timer.reset();
-//            }
+
+            if(gamepad1.left_bumper && !shooter.is_shooting() && timer.milliseconds() > 250) {
+                if(intake.is_intaking())
+                    Intake.state = Intake.State.Stopped;
+                else
+                    Intake.state = Intake.State.Intake;
+
+                timer.reset();
+            }
+
+            if(gamepad1.dpad_left && timer.milliseconds() > 250) {
+                if(intake.is_intaking())
+                    Intake.state = Intake.State.Stopped;
+                else
+                    Intake.state = Intake.State.Reverse;
+
+                timer.reset();
+            }
+
+            if (gamepad1.dpad_up) {
+                orbitx = follower.pose().x();
+                orbity = follower.pose().y();
+                orbitheading = follower.pose().heading();
+            }
 
             follower.update();
 
@@ -95,24 +106,40 @@ public class TeleOpBlue extends LinearOpMode {
             shooter.update(pose.x(), pose.y(), velo.vx, velo.vy, pose.heading());
             turret.update(pose.x(), pose.y(), velo.vx, velo.vy, velo.omega , pose.heading());
             intake.update();
-            hood.update();
+//            hood.update();
+
+            Pose selectedGoal = Globals.getSelectedGoal(Globals.alliance,new Pose(pose.x(), pose.y()));
 
             telemetry.update();
 
             telemetry.addData("first senzor v ", sensors.first_sensor.getVoltage());
-            telemetry.addData("analog second ", sensors.third_sensor.getVoltage());
+            telemetry.addData("second senzor v ", sensors.second_sensor.getVoltage());
             telemetry.addData("third senzor v ", sensors.third_sensor.getVoltage());
             telemetry.addData("fourth senzor v ", sensors.fourth_sensor.getVoltage());
+
+            telemetry.addData("stopper v", sensors.readStopperAnalog());
+
+            telemetry.addData("vel" , Globals.currentVel);
+            telemetry.addData("error, ",Globals.error);
 
             telemetry.addData("first ball", Globals.first_ball);
             telemetry.addData("2 ball", Globals.second_ball);
             telemetry.addData("third ball", Globals.third_ball);
             telemetry.addData("last ball", Globals.fourth_ball);
 
+            telemetry.addData("current goal", Globals.currentGoal);
+
+            telemetry.addData("looking at x: ", selectedGoal.x());
+            telemetry.addData("looking at y: ", selectedGoal.y());
+            telemetry.addData("distance to seleceted goal: ", Globals.distanceFromSelectedGoal);
 
             telemetry.addData("x", pose.x());
             telemetry.addData("y", pose.y());
             telemetry.addData("heading", Math.toDegrees(pose.heading()));
+
+            telemetry.addData("differential x", (orbitx - pose.x()));
+            telemetry.addData("differntial y", (orbity - pose.y()));
+            telemetry.addData("differential heading", (orbitheading - pose.heading()));
         }
     }
 }

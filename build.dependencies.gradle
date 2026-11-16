@@ -24,10 +24,6 @@ dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
 
-//    implementation('com.acmerobotics.dashboard:dashboard:0.5.0') {
-//        exclude group: 'org.firstinspires.ftc'
-//    }
-
     implementation 'com.pedropathing:revhub:3.0.2'
     implementation 'com.pedropathing:tuning:1.0.0'
 
@@ -36,8 +32,5 @@ dependencies {
     implementation 'com.github.Thermal-Equilibrium:homeostasis-FTC:1.0.8'
     implementation 'org.ftclib.ftclib:core:2.1.1'
 
-//    implementation("dev.frozenmilk.dairy:Core:2.2.4") // vechi (Sloth 0.2.4), nefolosit, se agata de OpMode-uri la boot
-//    implementation("com.acmerobotics.slothboard:dashboard:0.3.2+0.6.0")
-//    implementation("dev.frozenmilk.sinister:Sloth:0.3.2")
     implementation "dev.frozenmilk.dairy:CachingHardware:1.0.0"
 }

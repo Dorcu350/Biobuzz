@@ -16,15 +16,15 @@ public class Sensors {
     public AnalogInput first_sensor, third_sensor, fourth_sensor, second_sensor;
     AnalogInput stopper_a;
     OctoQuad octoQuad;
-
+    public static double stopper_open_voltage = 1.8;
 
     // TRANSFER -----------------------
 
     public void checkFullTransfer() {
-        if ( first_sensor.getVoltage() >= 2.5 ) Globals.first_ball = true;
-        if ( Globals.first_ball && second_sensor.getVoltage() >= 2.5 ) Globals.second_ball = true;
-        if ( Globals.second_ball && third_sensor.getVoltage() >= 2.5 ) Globals.third_ball = true;
-        if ( Globals.third_ball && fourth_sensor.getVoltage() >= 2.5 ) Globals.fourth_ball = true;
+        if ( first_sensor.getVoltage() >= 2.57 ) Globals.first_ball = true;
+        if ( Globals.first_ball && second_sensor.getVoltage() >= 2.65 ) Globals.second_ball = true;
+        if ( Globals.second_ball && third_sensor.getVoltage() >= 2.55 ) Globals.third_ball = true;
+        if ( Globals.third_ball && fourth_sensor.getVoltage() >= 2.55 ) Globals.fourth_ball = true;
     }
 
     public void resetTransfer() {
@@ -38,9 +38,7 @@ public class Sensors {
     //STOPPER -----------------------
 
     public double readStopperAnalog() { return stopper_a.getVoltage(); }
-    public boolean stopperOpen() { return (readStopperAnalog() > 0.9); }
-
-
+    public boolean stopperOpen() { return (readStopperAnalog() > stopper_open_voltage); }
     public Sensors(HardwareMap map) {
         first_sensor = map.get(AnalogInput.class, "first");
         second_sensor = map.get(AnalogInput.class, "second");
@@ -49,5 +47,7 @@ public class Sensors {
         stopper_a = map.get(AnalogInput.class, "stopper_a");
 
         octoQuad = map.get(OctoQuad.class, "octo");
+//        octoQuad.setSingleEncoderDirection(3, OctoQuad.EncoderDirection.FORWARD);
+//        octoQuad.setSingleVelocitySampleInterval(3, 100);
     }
 }

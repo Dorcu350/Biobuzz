@@ -1,15 +1,10 @@
 package org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.pow;
-
-//<<<<<<< HEAD
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
-//=======
-import com.bylazar.telemetry.PanelsTelemetry;
-import com.bylazar.telemetry.TelemetryManager;
+
+import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -25,12 +20,12 @@ import dev.frozenmilk.dairy.cachinghardware.CachingServo;
 @Configurable
 public class Shooter {
     final TelemetryManager telemetryM;
-    CachingDcMotorEx shooterDown,shooterUp;
+    CachingDcMotorEx shooter;
     CachingServo stopper;
     Sensors sensors;
-    public static double kP , kV , kS;
-    public static double targetVel , error, testVel;
-    public static double stopperOpen = 0.325 , stopperClose = 0.25;
+    public static double kP = 0.0035, kV = 0.00034, kS = 0.063;
+    public static double targetVel , error;
+    public static double stopperOpen = 0.6 , stopperClose = 0.4;
     public double shooterWorldX , shooterWorldY;
     public boolean start = false;
     double xGoal, yGoal;
@@ -41,7 +36,7 @@ public class Shooter {
     }
     public static State state;
 
-    public void setPower(double power) { shooterDown.setPower(power); shooterUp.setPower(power); }
+    public void setPower(double power) { shooter.setPower(power); }
 
     public void update(double x, double y, double vx, double vy, double heading) {
 
@@ -50,14 +45,18 @@ public class Shooter {
 
         // GOAL SELECTION ----------------------------------------------------
 
-        if (Globals.alliance == Globals.Alliance.BLUE) {
-            yGoal = (y <= Globals.xMiddleField) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
-            xGoal = Globals.xGoalBlue;
-        }
-        else {
-            yGoal = (y <= Globals.xMiddleField) ? Globals.yGoalRedLeft : Globals.yGoalRedRight;
-            xGoal = Globals.xGoalRed;
-        }
+//        if (Globals.alliance == Globals.Alliance.BLUE) {
+//            yGoal = (y <= Globals.xMiddleField) ? Globals.yGoalBlueLeft : Globals.yGoalBlueRight;
+//            xGoal = Globals.xGoalBlue;
+//        }
+//        else {
+//            yGoal = (y <= Globals.xMiddleField) ? Globals.yGoalRedLeft : Globals.yGoalRedRight;
+//            xGoal = Globals.xGoalRed;
+//        }
+
+        Pose selectedGoal = Globals.getSelectedGoal(Globals.alliance,new Pose(x,y));
+        xGoal = selectedGoal.x();
+        yGoal = selectedGoal.y();
 
         // CALCULE SOTM ----------------------------------------------------
 
@@ -74,15 +73,15 @@ public class Shooter {
 
             Globals.virtualDistanceFromGoal = Math.hypot(xGoal - predRobotX, yGoal - predRobotY);
 //            targetVel = calculateShooterRPM(Globals.virtualDistanceFromGoal);
-            targetVel = calculateShooterRPM(testVel);
+//            targetVel = calculateShooterRPM(testVel);
 
         } else {
             Globals.distanceFromGoal = Math.hypot(xGoal - shooterWorldX,  yGoal - shooterWorldY);
 
-            targetVel = calculateShooterRPM(Globals.distanceFromGoal);
+//            targetVel = calculateShooterRPM(Globals.distanceFromGoal);
         }
 
-        double vel = shooterUp.getVelocity();
+        double vel = shooter.getVelocity();
         error = targetVel - vel;
 
         Globals.currentVel = vel;
@@ -99,11 +98,8 @@ public class Shooter {
                 Globals.pre_spin = false;
                 Globals.start_transfer = true;
 
-//                if (noError(error)){
-                    stopper.setPosition(stopperOpen);
-                    sensors.resetTransfer();
-//                }
-                if (sensors.stopperOpen()) Globals.start_transfer = true;
+                stopper.setPosition(stopperOpen);
+                sensors.resetTransfer();
 
                 break;
 
@@ -131,10 +127,8 @@ public class Shooter {
             setPower(pow);
 
         } else setPower(0);
+
     }
-//    public boolean noError(double error) {
-//        return (abs(error) <= 80);
-//    }
 
     public double calculateShooterRPM(double distance) {
         return distance;
@@ -145,16 +139,13 @@ public class Shooter {
     }
 
     public Shooter(HardwareMap map) {
-        shooterUp =   new CachingDcMotorEx(map.get(DcMotorEx.class, Globals.shooter_up));
-        shooterDown = new CachingDcMotorEx(map.get(DcMotorEx.class, Globals.shooter_down));
-        stopper =     new CachingServo(map.get(Servo.class, Globals.servoStopper));
+        shooter = new CachingDcMotorEx(map.get(DcMotorEx.class, "shooter"));
         stopper = new CachingServo(map.get(Servo.class, Globals.servoStopper));
 
-        shooterUp.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooterDown.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooterUp.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        shooterDown.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        shooterDown.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooter.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
 
         sensors = new Sensors(map);
         voltageSensorShooter = map.voltageSensor.iterator().next();
