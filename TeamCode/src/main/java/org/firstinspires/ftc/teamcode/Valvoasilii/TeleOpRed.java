@@ -1,16 +1,15 @@
 package org.firstinspires.ftc.teamcode.Valvoasilii;
 
-import com.pedropathing.drivetrain.DrivePowers;
-import com.pedropathing.follower.Follower;
-import com.pedropathing.follower.ManualDrive;
 import com.pedropathing.math.Pose;
 import com.pedropathing.math.Velocity;
+import com.pedropathing.follower.Follower;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Intake;
+import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Valvoasilii;
 import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Sensors;
 import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Shooter;
 import org.firstinspires.ftc.teamcode.Valvoasilii.SubSystems.Turret;
@@ -22,6 +21,7 @@ import java.util.List;
 @TeleOp(name = "TeleOp Red")
 public class TeleOpRed extends LinearOpMode {
     Shooter shooter;
+    Valvoasilii valvoasilii;
     Follower follower;
     Turret turret;
     Intake intake;
@@ -39,6 +39,7 @@ public class TeleOpRed extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         follower = Constants.create(hardwareMap);
+        valvoasilii = new Valvoasilii(hardwareMap);
         shooter = new Shooter(hardwareMap);
         turret = new Turret(hardwareMap);
         intake = new Intake(hardwareMap);
@@ -48,7 +49,7 @@ public class TeleOpRed extends LinearOpMode {
         Globals.faze = Globals.Faze.TeleOp;
 
         follower.setPose(startingPose);
-        follower.update();
+        follower.localizer.update();
 
         telemetry.setMsTransmissionInterval(11);
         telemetry.addLine("Ce i in mana nu i minciuna");
@@ -69,14 +70,14 @@ public class TeleOpRed extends LinearOpMode {
         while (opModeIsActive()) {
             for (LynxModule hub : allHubs) hub.clearBulkCache();
 
-            DrivePowers powers = ManualDrive.fieldCentric(
+            follower.localizer.update();
+
+            valvoasilii.driveFieldCentric(
                     gamepad1.left_stick_y,
-                    -gamepad1.left_stick_x,
-                    -gamepad1.right_stick_x,
+                    gamepad1.left_stick_x,
+                    gamepad1.right_stick_x,
                     follower.pose().heading()
             );
-
-            follower.manual(powers);
 
             if(gamepad1.right_trigger >= 0.25) {
                 Intake.state = Intake.State.Transfer;
@@ -121,7 +122,7 @@ public class TeleOpRed extends LinearOpMode {
 
             if (gamepad2.circle) Globals.offset_shooter -= 20;
 
-            if (gamepad2.options || gamepad1.options) {
+            if (gamepad2.right_trigger >= 0.25 || gamepad1.left_bumper) {
                 follower.setPose(new Pose(startingPose.x(), startingPose.y(), startingPose.heading()));
                 Globals.offset_shooter = 0.0;
                 Globals.offset_turret = 0.0;
@@ -147,8 +148,6 @@ public class TeleOpRed extends LinearOpMode {
 //                follower.setPose(resetPose[closestIndex]);
 //            }
 
-
-            follower.update();
 
             Pose pose = follower.pose();
             Velocity velo = follower.velocity();
@@ -201,5 +200,7 @@ public class TeleOpRed extends LinearOpMode {
             telemetry.update();
             loops.reset();
         }
+
+        valvoasilii.stop();
     }
 }
