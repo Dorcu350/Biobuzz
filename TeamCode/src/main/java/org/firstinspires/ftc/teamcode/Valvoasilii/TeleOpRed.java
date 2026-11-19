@@ -21,7 +21,6 @@ import java.util.List;
 @TeleOp(name = "TeleOp Red")
 public class TeleOpRed extends LinearOpMode {
     Shooter shooter;
-    Valvoasilii valvoasilii;
     Follower follower;
     Turret turret;
     Intake intake;
@@ -39,7 +38,6 @@ public class TeleOpRed extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         follower = Constants.create(hardwareMap);
-        valvoasilii = new Valvoasilii(hardwareMap);
         shooter = new Shooter(hardwareMap);
         turret = new Turret(hardwareMap);
         intake = new Intake(hardwareMap);
@@ -71,13 +69,6 @@ public class TeleOpRed extends LinearOpMode {
             for (LynxModule hub : allHubs) hub.clearBulkCache();
 
             follower.localizer.update();
-
-            valvoasilii.driveFieldCentric(
-                    gamepad1.left_stick_y,
-                    gamepad1.left_stick_x,
-                    gamepad1.right_stick_x,
-                    follower.pose().heading()
-            );
 
             if(gamepad1.right_trigger >= 0.25) {
                 Intake.state = Intake.State.Transfer;
@@ -200,7 +191,5 @@ public class TeleOpRed extends LinearOpMode {
             telemetry.update();
             loops.reset();
         }
-
-        valvoasilii.stop();
     }
 }

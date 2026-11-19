@@ -88,9 +88,13 @@ public class Shooter {
 
                 start = true;
                 Globals.pre_spin = false;
-                Globals.start_transfer = true;
 
-                stopper.setPosition(stopperOpen);
+                if (noError(error))
+                    stopper.setPosition(stopperOpen);
+
+                if (sensors.stopperOpen())
+                    Globals.start_transfer = true;
+
                 sensors.resetTransfer();
 
                 break;
@@ -127,6 +131,9 @@ public class Shooter {
     }
     public boolean is_shooting() {
         return Shooter.state == State.Shoot;
+    }
+    public boolean noError(double error) {
+        return error <= 40;
     }
 
     public Shooter(HardwareMap map) {
